@@ -1,13 +1,11 @@
 
 @import url(https://fonts.googleapis.com/css?family=Rokkitt);
-@import url(../node_modules/@fortawesome/fontawesome-free/css/all.min.css);
 
 * {
 	box-sizing: border-box;
 }
 
 body {
-	background-image: url(./assets/paper_fibers.png);
 	font: 18px "Rokkitt";
 	margin: 0;
 	padding: 0;
