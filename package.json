@@ -1,0 +1,30 @@
+{
+	"name": "bucket",
+	"scripts": {
+		"start": "react-app-rewired start",
+		"build": "react-app-rewired build",
+		"test": "react-app-rewired test",
+		"eject": "react-app-rewired eject"
+	},
+	"eslintConfig": {
+		"extends": "react-app",
+		"rules": {
+			"eqeqeq": "off"
+		}
+	},
+	"dependencies": {
+		"@types/jest": "^23.3.13",
+		"@types/node": "^10.12.18",
+		"customize-cra": "^0.2.9",
+		"react-app-rewired": "^2.0.2",
+		"react-scripts": "2.1.1",
+		"typescript": "^3.2.4"
+	},
+	"browserslist": [
+		">0.2%",
+		"not dead",
+		"not ie <= 11",
+		"not op_mini all"
+	],
+	"devDependencies": {}
+}
