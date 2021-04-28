@@ -1,0 +1,6 @@
+[submodule "tove2d"]
+	path = tove2d
+	url = https://github.com/poke1024/tove2d
+[submodule "cute"]
+	path = cute
+	url = https://github.com/gtrogers/Cute
