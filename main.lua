@@ -1,43 +1,77 @@
+cute = require "cute"
 lick = require "lick"
 tove = require "tove"
 
-lick.files = {"board.lua", "main.lua", "piece.lua"}
+lick.files = {"board.lua", "graphics.lua", "main.lua", "piece.lua"}
 lick.reset = "true"
 lick.debug = "true"
 
 board = require "board"
+graphics = require "graphics"
 piece = require "piece"
 
-dropInterval = .5
-dropCountup = .5
+DROP_INTERVAL = .5
 
-function love.load()
-	board:updateGrid()
-	board:clear()
+game = nil
+renderers = nil
 
-	dropCountup = dropInterval
+function love.load(args)
+	cute.go(args)
+
+	love.keyboard.setKeyRepeat(true)
+
+	game = {
+		dropCountup = DROP_INTERVAL,
+		board = board:new {
+			width = 8,
+			depth = 6
+		}
+	}
+
+	renderers = {
+		graphics.BoardRenderer:new(game.board)
+	}
 end
 
 function love.resize()
-	board:updateGrid()
+	for _, renderer in ipairs(renderers) do
+		renderer:resize()
+	end
 end
 
 function love.draw()
 	love.graphics.setColor(1, 1, 1)
-	board:draw()
+
+	for _, renderer in ipairs(renderers) do
+		renderer:draw()
+	end
 end
 
 function dropPiece()
-	if not board.piece or not board:dropPiece() then
-		board:startPiece(piece.random())
+	game.dropCountup = 0
+
+	if not game.board.piece then
+		game.board:startPiece(piece.random())
+	elseif not game.board:dropPiece() then
+		game.board:setPiece()
+		game.board:startPiece(piece.random())
 	end
 end
 
 function love.update(dt)
-	dropCountup = dropCountup + dt
+	game.dropCountup = game.dropCountup + dt
 
-	if dropCountup >= dropInterval then
-		dropCountup = 0
+	if game.dropCountup >= DROP_INTERVAL then
+		dropPiece()
+	end
+end
+
+function love.keypressed(key)
+	if key == 'left' then
+		game.board:shiftPiece(-1)
+	elseif key == 'right' then
+		game.board:shiftPiece(1)
+	elseif key == 'down' then
 		dropPiece()
 	end
 end

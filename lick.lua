@@ -55,7 +55,9 @@ local function update(dt)
         end
 
         if lick.reset then
-            loadok, err = xpcall(love.load, handle)
+            loadok, err = xpcall(function()
+				love.load(love.arg.parseGameArguments(arg), arg)
+			end, handle)
             if not loadok then
                 print("RESET ERROR: "..tostring(err))
                 if lick.debugoutput then

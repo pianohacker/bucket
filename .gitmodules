@@ -4,3 +4,6 @@
 [submodule "cute"]
 	path = cute
 	url = https://github.com/gtrogers/Cute
+[submodule "inspect.lua"]
+	path = inspect
+	url = https://github.com/kikito/inspect.lua
