@@ -1,5 +1,9 @@
 graphics = {}
 
+function lerp2(a, b, t)
+	return b[1] * t + a[1] * (1-t), b[2] * t + a[2] * (1-t)
+end
+
 B_TOP_RADIUS = 0.4 -- Radius of outside of board as a proportion of the screen.
 B_TOP_CORNERNESS = 0.15 -- Amount that corners are drawn out.
 B_BOTTOM_RADIUS = 0.21 -- Radius of bottom of board as a proportion of the screen.

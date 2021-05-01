@@ -145,7 +145,13 @@ function board:shiftPiece(delta)
 		end
 	end
 
+	if self:pieceWouldCollide(newT, self.pieceR) then
+		return false
+	end
+
 	self.pieceT, _ = self:normalizePoint(newT, 1)
+
+	return true
 end
 
 function board:setPiece()
