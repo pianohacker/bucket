@@ -67,11 +67,13 @@ function love.update(dt)
 end
 
 function love.keypressed(key)
-	if key == 'left' then
+	if key == 'l' then
 		game.board:shiftPiece(-1)
-	elseif key == 'right' then
+	elseif key == 'a' then
 		game.board:shiftPiece(1)
-	elseif key == 'down' then
+	elseif key == 'e' then
 		dropPiece()
+	elseif key == 's' then
+		game.board:rotatePieceRight()
 	end
 end

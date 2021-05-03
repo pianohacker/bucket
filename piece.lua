@@ -1,43 +1,57 @@
--- These pieces must be symmetric, for easy rotation.
-local PIECES = {
-	{
+-- These pieces must be in square grids, for easy rotation.
+local PIECE_GRIDS = {
+	I = {
 		{0,1,0,0},
 		{0,1,0,0},
 		{0,1,0,0},
 		{0,1,0,0},
 	},
-	{
-		{0,1,0},
-		{0,1,1},
-		{0,1,0},
-	},
-	{
-		{0,1,0},
-		{0,1,0},
-		{0,1,1},
-	},
-	{
+	J = {
 		{0,1,0},
 		{0,1,0},
 		{1,1,0},
 	},
-	{
+	L = {
+		{0,1,0},
+		{0,1,0},
+		{0,1,1},
+	},
+	O = {
+		{1,1},
+		{1,1},
+	},
+	S = {
 		{0,1,0},
 		{0,1,1},
 		{0,0,1}
 	},
-	{
+	Z = {
 		{0,1,0},
 		{1,1,0},
 		{1,0,0}
-	}
+	},
+	T = {
+		{0,1,0},
+		{0,1,1},
+		{0,1,0},
+	},
+	MINI_J = {
+		{0,1},
+		{1,1},
+	},
+	MINI_L = {
+		{1,0},
+		{1,1},
+	},
 }
 
-piece = {}
-piece.__index = piece
+PIECES = {}
 
+piece = {} 
+piece.__index = piece
+ 
 function piece.random()
-	return piece.pick(love.math.random(1, #PIECES))
+	return PIECES[love.math.random(1, #PIECES)]
 end
 
 local function newPiece()
@@ -45,25 +59,6 @@ local function newPiece()
 	setmetatable(o, piece)
 
 	return o
-end
-
-function piece.pick(index)
-	local piece_yx = PIECES[index]
-	assert(#piece_yx == #piece_yx[1])
-
-	local piece_xy = newPiece()
-
-	for x = 1,#piece_yx[1] do
-		piece_xy[x] = {}
-
-		for y = 1,#piece_yx do
-			piece_xy[x][y] = piece_yx[y][x] == 1
-		end
-	end
-
-	piece_xy:setBounds()
-
-	return piece_xy
 end
 
 function piece:setBounds()
@@ -82,6 +77,11 @@ function piece:setBounds()
 			end
 		end
 	end
+
+	self.width = self.right - self.left + 1
+	self.height = self.bottom - self.top + 1
+	self.xOffset = self.left - 1
+	self.yOffset = self.top - 1
 end
 
 function piece:rotateLeft()
@@ -140,6 +140,25 @@ function piece:rotateRight()
 	rotPiece:setBounds()
 
 	return rotPiece
+end
+
+for name, piece_yx in pairs(PIECE_GRIDS) do
+	assert(#piece_yx == #piece_yx[1])
+
+	local piece_xy = newPiece()
+
+	for x = 1,#piece_yx[1] do
+		piece_xy[x] = {}
+
+		for y = 1,#piece_yx do
+			piece_xy[x][y] = piece_yx[y][x] == 1
+		end
+	end
+
+	piece_xy:setBounds()
+
+	table.insert(PIECES, piece_xy)
+	piece[name] = piece_xy
 end
 
 module("piece")

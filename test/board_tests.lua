@@ -2,6 +2,7 @@ local cute = require("cute")
 local inspect = require("inspect")
 
 local board = require("board")
+local piece = require("piece")
 
 local common = require("test.common")
 
@@ -45,10 +46,7 @@ end)
 notion("piece movement works correctly", function()
 	local b = board:new {width = 5, depth = 3}
 
-	b:startPiece(common.grid [[
-		_x
-		xx
-	]], 3)
+	b:startPiece(piece.MINI_J, 3)
 	b:setPiece()
 	check(common.gridRepr(common.gridReflectY(b.upper_grid))).is(common.dedent [[
 		___x________________
@@ -56,22 +54,80 @@ notion("piece movement works correctly", function()
 		____________________
 	]])
 
-	b:startPiece(common.grid [[
-		_x
-		xx
-	]], 7)
+	b:startPiece(piece.Z, 7)
+	b:rotatePieceRight()
 	b:dropPiece()
 	b:dropPiece()
 	b:setPiece()
 	check(common.gridRepr(common.gridReflectY(b.upper_grid))).is(common.dedent [[
 		___x________________
 		__xx________________
-		_______x____________
+		______xx____________
 	]])
 	check(common.gridRepr(b.lower_grid)).is(common.dedent [[
 		_____
+		_____
 		____x
 		____x
+		_____
+	]])
+end)
+
+notion("piece movement across edges works correctly", function()
+	local b = board:new {width = 5, depth = 4}
+
+	-- Moving left across an edge
+	b:startPiece(piece.I, 1)
+	b:shiftPiece(-1)
+	b:setPiece()
+	check(common.gridRepr(common.gridReflectY(b.upper_grid))).is(common.dedent [[
+		___________________x
+		___________________x
+		___________________x
+		___________________x
+	]])
+
+	-- Moving right across an edge
+	b:startPiece(piece.I, 20)
+	b:shiftPiece(1)
+	b:setPiece()
+	check(common.gridRepr(common.gridReflectY(b.upper_grid))).is(common.dedent [[
+		x__________________x
+		x__________________x
+		x__________________x
+		x__________________x
+	]])
+
+	-- Moving left across an edge after rotation
+	b:startPiece(piece.I, 7)
+	b:rotatePieceRight()
+	b:shiftPiece(-1)
+	b:setPiece()
+	check(common.gridRepr(common.gridReflectY(b.upper_grid))).is(common.dedent [[
+		x__________________x
+		xxxxx______________x
+		x__________________x
+		x__________________x
+	]])
+
+	b:startPiece(piece.I, 6)
+	check(b:dropPiece()).is(true)
+	check(b:dropPiece()).is(true)
+	check(b:dropPiece()).is(true)
+	check(b:dropPiece()).is(true)
+	check(b:dropPiece()).is(true)
+	check(b:dropPiece()).is(false)
+	b:setPiece()
+	check(common.gridRepr(common.gridReflectY(b.upper_grid))).is(common.dedent [[
+		x__________________x
+		xxxxx______________x
+		x__________________x
+		x__________________x
+	]])
+	check(common.gridRepr(b.lower_grid)).is(common.dedent [[
+		xxxx_
+		_____
+		_____
 		_____
 		_____
 	]])
@@ -80,10 +136,7 @@ end)
 notion("piece movement blocked by collision", function()
 	local b = board:new {width = 5, depth = 3}
 
-	b:startPiece(common.grid [[
-		_x
-		xx
-	]], 7)
+	b:startPiece(piece.MINI_J, 7)
 	b:dropPiece()
 	b:dropPiece()
 	b:dropPiece()
@@ -103,10 +156,7 @@ notion("piece movement blocked by collision", function()
 		_____
 	]])
 
-	b:startPiece(common.grid [[
-		_x
-		xx
-	]], 3)
+	b:startPiece(piece.MINI_J, 3)
 	check(b:dropPiece()).is(true)
 	check(b:dropPiece()).is(true)
 	check(b:dropPiece()).is(true)
@@ -114,4 +164,35 @@ notion("piece movement blocked by collision", function()
 	check(b:shiftPiece(1)).is(true)
 	check(b:shiftPiece(-1)).is(true)
 	check(b:shiftPiece(-1)).is(false)
+end)
+
+notion("isSquareFilled works correctly", function()
+	local b = board:new {width = 5, depth = 3}
+
+	for _, t in ipairs({2, 7, 12, 17}) do
+		b:startPiece(piece.S, t)
+		b:dropPiece()
+
+		check(
+			b:isSquareFilled(t, 2), b:isSquareFilled(t + 1, 2),
+			b:isSquareFilled(t, 1), b:isSquareFilled(t + 1, 1),
+			b:isSquareFilled(t, 0), b:isSquareFilled(t + 1, 0)
+		).is(
+			true, false,
+			true, true,
+			false, true
+		)
+
+		b:setPiece()
+
+		check(
+			b:isSquareFilled(t, 2), b:isSquareFilled(t + 1, 2),
+			b:isSquareFilled(t, 1), b:isSquareFilled(t + 1, 1),
+			b:isSquareFilled(t, 0), b:isSquareFilled(t + 1, 0)
+		).is(
+			true, false,
+			true, true,
+			false, true
+		)
+	end
 end)

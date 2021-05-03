@@ -22,6 +22,8 @@
 -- point of the the same square. (The top-left of squares on the north or bottom sides, the top-right
 -- of squares on the east side, etc.)
 
+local common = require("common")
+
 board = {}
 board.__index = board
 
@@ -65,14 +67,12 @@ function board:startPiece(piece, t)
 	self:markChanged()
 
 	self.piece = piece
-	self.pieceR = self.depth
-	self.pieceW = #piece
-	self.pieceH = #piece[1]
+	self.pieceR = self.depth + (piece.top - 1)
 
 	if not t then
 		repeat
 			t = love.math.random(1, self.circumf)
-		until self:side(t) == self:side(t + self.pieceW - 1)
+		until self:side(t) == self:side(t + self.piece.width)
 	end
 
 	self.pieceT = t
@@ -85,16 +85,21 @@ function board:iterPieceSquares(pieceT, pieceR)
 	local t = 0
 	local r = 1
 
+	-- print(string.format("at (%d, %d)", pieceT, pieceR))
 	local function iter()
-		while r <= self.pieceH do
+		while r <= #self.piece[1] do
 			t = t + 1
-			if t > self.pieceW then
+			if t > #self.piece then
 				t = 1
 				r = r + 1
 			end
 
-			if r <= self.pieceH and self.piece[t][r] then
-				return self:normalizePoint(pieceT + t - 1, pieceR - r + 1)
+			if r <= #self.piece[1] and self.piece[t][r] then
+				-- print(string.format("(%d, %d) -> (%d, %d)", t, r,pieceT + t - 1, pieceR - r + 1))
+				return self:normalizePoint(
+					pieceT - self.piece.xOffset + t - 1,
+					pieceR - r + 1
+				)
 			end
 		end
 
@@ -105,8 +110,10 @@ function board:iterPieceSquares(pieceT, pieceR)
 end
 
 function board:pieceWouldCollide(pieceT, pieceR)
+	local side = self:side(pieceT)
+
 	for t, r in self:iterPieceSquares(pieceT, pieceR) do
-		if self:isGridSquareFilled(t, r) then
+		if self:isGridSquareFilled(t, r) or self:side(t) ~= side then
 			return true
 		end
 	end
@@ -117,7 +124,7 @@ end
 function board:dropPiece()
 	local newR = self.pieceR - 1
 
-	if newR - self.pieceH < -self.width or self:pieceWouldCollide(self.pieceT, newR) then
+	if newR - self.piece.height < -self.width or self:pieceWouldCollide(self.pieceT, newR) then
 		return false
 	else
 		self:markChanged()
@@ -130,18 +137,20 @@ end
 function board:shiftPiece(delta)
 	self:markChanged()
 
-	local inBottom = self.pieceR - self.pieceH < 0
+	local inBottom = self.pieceR - self.piece.height < 0
 	local newT = self.pieceT + delta
-	local newTFar = newT -- The furthest t covered by the piece
-	if delta == 1 then
-		newTFar = newT + self.pieceW - 1
+	local newTFar -- The furthest t covered by the piece
+	if delta == -1 then
+		newTFar = newT
+	elseif delta == 1 then
+		newTFar = newT + self.piece.right - self.piece.xOffset - 1
 	end
 
 	if self:side(self.pieceT) ~= self:side(newTFar) then
 		if inBottom then
-			return
+			return false
 		else
-			newT = newT + delta * (self.pieceW - 1)
+			newT = newT + delta * (self.piece.width - 1)
 		end
 	end
 
@@ -164,6 +173,13 @@ function board:setPiece()
 	self.piece = nil
 end
 
+function board:rotatePieceRight()
+	self:markChanged()
+
+	self.pieceT, _ = self:normalizePoint(self.pieceT - self.piece.xOffset, 1)
+	self.piece = self.piece:rotateRight()
+end
+
 function board:normalizePoint(t, r)
 	t = (t - 1) % self.circumf + 1
 	return t, r
@@ -177,8 +193,6 @@ end
 
 function board:radialToGrid(t, r, side)
 	assert(r < 1, "radial coordinate not on bottom of board")
-
-	-- t, r = self:normalizePoint(t, r)
 
 	side = side or self:side(t)
 
@@ -240,13 +254,14 @@ function board:isSquareFilled(t, r)
 	t, r = self:normalizePoint(t, r)
 
 	if self.piece then
-		local trans_t, trans_r = self:remapPoint(t, r, self:side(self.pieceT))
+		local transT, transR = self:remapPoint(t, r, self:side(self.pieceT))
+		transT = transT + self.piece.xOffset
 
 		if (
-			(trans_t >= self.pieceT and trans_t < self.pieceT + self.pieceW) and
-			(trans_r > self.pieceR - self.pieceH and trans_r <= self.pieceR)
+			(transT >= self.pieceT and transT < self.pieceT + #self.piece) and
+			(transR > self.pieceR - #self.piece[1] and transR <= self.pieceR)
 		) then
-			if self.piece[trans_t - self.pieceT + 1][1 + (self.pieceR - trans_r)] then
+			if self.piece[transT - self.pieceT + 1][1 + (self.pieceR - transR)] then
 				return true
 			end
 		end

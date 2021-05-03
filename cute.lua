@@ -258,7 +258,17 @@ x_notion = function (title, testMethod)
 end
 
 local function repr(x)
-  return string.format("%q", x):gsub("\\\n", "\\n")
+  if type(x) == "string" and x:match("\n") then
+    local result = "[[\n"
+
+    for line in x:gmatch("([^\n]+)") do
+      result = result .. "  " .. line .. "\n"
+    end
+
+    return result .. "\n]]"
+  else
+    return string.format("%q", x):gsub("\\\n", "\\n")
+  end
 end
 
 local _is = function (testVals, refVals)
