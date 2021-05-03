@@ -1,19 +1,19 @@
 module("common", package.seeall)
 
 function dump(...)
-	local vars = {...}
+	local exprs = {...}
 
 	local info = debug.getinfo(2)
 	io.write(string.format("%s:%d: ", info.source, info.currentline))
 
-	local variables = {}
+	local scope = {}
 	local idx = 1
 
 	while true do
 		local var, value = debug.getlocal(2, idx)
 
 		if var then
-			variables[var] = value
+			scope[var] = value
 		else
 			break
 		end
@@ -21,10 +21,15 @@ function dump(...)
 		idx = idx + 1
 	end
 
-	for i, var in ipairs(vars) do
-		io.write(string.format("%s = %s", var, variables[var]))
+	setmetatable(scope, {__index = getfenv(2)})
 
-		if i ~= #vars then
+	for i, expr in ipairs(exprs) do
+		local chunk = loadstring("return " .. expr)
+		setfenv(chunk, scope)
+		local result = chunk()
+		io.write(string.format("%s = %s", expr, result))
+
+		if i ~= #exprs then
 			io.write(", ")
 		end
 	end

@@ -156,7 +156,7 @@ notion("piece movement blocked by collision", function()
 		_____
 	]])
 
-	b:startPiece(piece.MINI_J, 3)
+	b:startPiece(piece.S, 3)
 	check(b:dropPiece()).is(true)
 	check(b:dropPiece()).is(true)
 	check(b:dropPiece()).is(true)
@@ -164,6 +164,20 @@ notion("piece movement blocked by collision", function()
 	check(b:shiftPiece(1)).is(true)
 	check(b:shiftPiece(-1)).is(true)
 	check(b:shiftPiece(-1)).is(false)
+	check(b:rotatePieceRight()).is(false)
+	b:setPiece()
+	check(common.gridRepr(common.gridReflectY(b.upper_grid))).is(common.dedent [[
+		____________________
+		____________________
+		____________________
+	]])
+	check(common.gridRepr(b.lower_grid)).is(common.dedent [[
+		__x__
+		_xxx_
+		_xxx_
+		_____
+		_____
+	]])
 end)
 
 notion("isSquareFilled works correctly", function()

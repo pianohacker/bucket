@@ -78,18 +78,19 @@ function board:startPiece(piece, t)
 	self.pieceT = t
 end
 
-function board:iterPieceSquares(pieceT, pieceR)
+function board:iterPieceSquares(pieceT, pieceR, piece)
 	pieceT = pieceT or self.pieceT
 	pieceR = pieceR or self.pieceR
+	piece = piece or self.piece
 
 	local t = 0
 	local r = 1
 
 	-- print(string.format("at (%d, %d)", pieceT, pieceR))
 	local function iter()
-		while r <= #self.piece[1] do
+		while r <= #piece[1] do
 			t = t + 1
-			if t > #self.piece then
+			if t > #piece then
 				t = 1
 				r = r + 1
 			end
@@ -97,7 +98,7 @@ function board:iterPieceSquares(pieceT, pieceR)
 			if r <= #self.piece[1] and self.piece[t][r] then
 				-- print(string.format("(%d, %d) -> (%d, %d)", t, r,pieceT + t - 1, pieceR - r + 1))
 				return self:normalizePoint(
-					pieceT - self.piece.xOffset + t - 1,
+					pieceT - piece.xOffset + t - 1,
 					pieceR - r + 1
 				)
 			end
@@ -109,10 +110,10 @@ function board:iterPieceSquares(pieceT, pieceR)
 	return iter, nil, nil
 end
 
-function board:pieceWouldCollide(pieceT, pieceR)
+function board:pieceWouldCollide(pieceT, pieceR, piece)
 	local side = self:side(pieceT)
 
-	for t, r in self:iterPieceSquares(pieceT, pieceR) do
+	for t, r in self:iterPieceSquares(pieceT, pieceR, piece) do
 		if self:isGridSquareFilled(t, r) or self:side(t) ~= side then
 			return true
 		end
@@ -176,8 +177,18 @@ end
 function board:rotatePieceRight()
 	self:markChanged()
 
-	self.pieceT, _ = self:normalizePoint(self.pieceT - self.piece.xOffset, 1)
-	self.piece = self.piece:rotateRight()
+	common.dump("self.pieceT", "self.piece.xOffset")
+	local newT, _ = self:normalizePoint(self.pieceT - self.piece.xOffset, 1)
+	common.dump("newT")
+	local piece = self.piece:rotateRight()
+	newT = newT + piece.xOffset
+	common.dump("newT", "piece.xOffset")
+
+	if self:pieceWouldCollide(newT, self.pieceR, piece) then
+		return false
+	end
+
+	return true
 end
 
 function board:normalizePoint(t, r)
