@@ -28,7 +28,7 @@ notion("rotateLeft works correctly", function()
 	local p1 = piece.I
 	p1 = p1:rotateLeft()
 
-	check(common.gridRepr(p1)).is(common.dedent [[
+	check(common.basicColsRepr(p1)).is(common.dedent [[
 		____
 		____
 		xxxx
@@ -42,7 +42,7 @@ notion("rotateLeft works correctly", function()
 	local p2 = piece.T
 	p2 = p2:rotateLeft()
 
-	check(common.gridRepr(p2)).is(common.dedent [[
+	check(common.basicColsRepr(p2)).is(common.dedent [[
 		_x_
 		xxx
 		___
@@ -55,7 +55,7 @@ notion("rotateLeft works correctly", function()
 	local p3 = piece.L
 	p3 = p3:rotateLeft()
 
-	check(common.gridRepr(p3)).is(common.dedent [[
+	check(common.basicColsRepr(p3)).is(common.dedent [[
 		__x
 		xxx
 		___
@@ -70,7 +70,7 @@ notion("rotateRight works correctly", function()
 	local p1 = piece.I
 	p1 = p1:rotateRight()
 
-	check(common.gridRepr(p1)).is(common.dedent [[
+	check(common.basicColsRepr(p1)).is(common.dedent [[
 		____
 		xxxx
 		____
@@ -84,7 +84,7 @@ notion("rotateRight works correctly", function()
 	local p2 = piece.T
 	p2 = p2:rotateRight()
 
-	check(common.gridRepr(p2)).is(common.dedent [[
+	check(common.basicColsRepr(p2)).is(common.dedent [[
 		___
 		xxx
 		_x_
@@ -97,7 +97,7 @@ notion("rotateRight works correctly", function()
 	local p3 = piece.L
 	p3 = p3:rotateRight()
 
-	check(common.gridRepr(p3)).is(common.dedent [[
+	check(common.basicColsRepr(p3)).is(common.dedent [[
 		___
 		xxx
 		x__

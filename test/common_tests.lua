@@ -6,11 +6,11 @@ notion("dedent works correctly", function()
 		def
 			ced
 	]])).is("abc\ndef\n\tced")
-	check(common.dedent([[123
-		abc
+	check(common.dedent([[
+			abc
 		def
 			ced
-	]])).is("123\nabc\ndef\n\tced")
+	]])).is("\tabc\ndef\n\tced")
 end)
 
 notion("grid works correctly for a single grid", function()

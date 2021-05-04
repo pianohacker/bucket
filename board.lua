@@ -86,7 +86,6 @@ function board:iterPieceSquares(pieceT, pieceR, piece)
 	local t = 0
 	local r = 1
 
-	-- print(string.format("at (%d, %d)", pieceT, pieceR))
 	local function iter()
 		while r <= #piece[1] do
 			t = t + 1
@@ -95,8 +94,7 @@ function board:iterPieceSquares(pieceT, pieceR, piece)
 				r = r + 1
 			end
 
-			if r <= #self.piece[1] and self.piece[t][r] then
-				-- print(string.format("(%d, %d) -> (%d, %d)", t, r,pieceT + t - 1, pieceR - r + 1))
+			if r <= #piece[1] and piece[t][r] then
 				return self:normalizePoint(
 					pieceT - piece.xOffset + t - 1,
 					pieceR - r + 1
@@ -174,19 +172,24 @@ function board:setPiece()
 	self.piece = nil
 end
 
-function board:rotatePieceRight()
+function board:rotatePiece(direction)
 	self:markChanged()
 
-	common.dump("self.pieceT", "self.piece.xOffset")
-	local newT, _ = self:normalizePoint(self.pieceT - self.piece.xOffset, 1)
-	common.dump("newT")
-	local piece = self.piece:rotateRight()
-	newT = newT + piece.xOffset
-	common.dump("newT", "piece.xOffset")
+	local newT = self.pieceT - self.piece.xOffset
+	local piece
+	if direction == -1 then
+		piece = self.piece:rotateLeft()
+	else
+		piece = self.piece:rotateRight()
+	end
+	newT, _ = self:normalizePoint(newT + piece.xOffset, 1)
 
 	if self:pieceWouldCollide(newT, self.pieceR, piece) then
 		return false
 	end
+
+	self.pieceT = newT
+	self.piece = piece
 
 	return true
 end

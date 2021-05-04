@@ -43,33 +43,57 @@ notion("remapPoint works correctly", function()
 	check(b:remapPoint(12, -4, 4)).is(20, -3)
 end)
 
+function checkBoardGridIs(b, gridString)
+	gridString = common.dedent(gridString)
+
+	check(
+		common.gridRepr(b.upper_grid, b.lower_grid)
+	).errorOffset(1).is(gridString)
+end
+
 notion("piece movement works correctly", function()
 	local b = board:new {width = 5, depth = 3}
 
 	b:startPiece(piece.MINI_J, 3)
 	b:setPiece()
-	check(common.gridRepr(common.gridReflectY(b.upper_grid))).is(common.dedent [[
-		___x________________
-		__xx________________
-		____________________
+	checkBoardGridIs(b, [[
+		   █▀▀▀█▀█
+		▄▄▄█  ▀▀ █▄▄▄
+		█           █
+		█           █
+		█▄▄▄     ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
 	]])
 
 	b:startPiece(piece.Z, 7)
-	b:rotatePieceRight()
-	b:dropPiece()
-	b:dropPiece()
+	check(b:rotatePiece(1)).is(true)
+	check(b:dropPiece()).is(true)
+	check(b:dropPiece()).is(true)
 	b:setPiece()
-	check(common.gridRepr(common.gridReflectY(b.upper_grid))).is(common.dedent [[
-		___x________________
-		__xx________________
-		______xx____________
+	checkBoardGridIs(b, [[
+		   █▀▀▀█▀█
+		▄▄▄█  ▀▀ █▄▄▄
+		█        ▄  █
+		█       █▀  █
+		█▄▄▄     ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
 	]])
-	check(common.gridRepr(b.lower_grid)).is(common.dedent [[
-		_____
-		_____
-		____x
-		____x
-		_____
+
+	b:startPiece(piece.T, 18)
+	check(b:rotatePiece(-1)).is(true)
+	check(b:dropPiece()).is(true)
+	check(b:dropPiece()).is(true)
+	b:setPiece()
+	checkBoardGridIs(b, [[
+		   █▀▀▀█▀█
+		▄▄▄█  ▀▀ █▄▄▄
+		█   ▄    ▄  █
+		█  ▀█   █▀  █
+		█▄▄▄     ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
 	]])
 end)
 
@@ -80,34 +104,46 @@ notion("piece movement across edges works correctly", function()
 	b:startPiece(piece.I, 1)
 	b:shiftPiece(-1)
 	b:setPiece()
-	check(common.gridRepr(common.gridReflectY(b.upper_grid))).is(common.dedent [[
-		___________________x
-		___________________x
-		___________________x
-		___________________x
+	checkBoardGridIs(b, [[
+		    █▀▀▀▀▀█
+		    █     █
+		█████     ▀▀▀▀█
+		█             █
+		█             █
+		▀▀▀▀█     █▀▀▀▀
+		    █     █
+		    ▀▀▀▀▀▀▀
 	]])
 
 	-- Moving right across an edge
 	b:startPiece(piece.I, 20)
 	b:shiftPiece(1)
 	b:setPiece()
-	check(common.gridRepr(common.gridReflectY(b.upper_grid))).is(common.dedent [[
-		x__________________x
-		x__________________x
-		x__________________x
-		x__________________x
+	checkBoardGridIs(b, [[
+		    ██▀▀▀▀█
+		    ██    █
+		█████▀    ▀▀▀▀█
+		█             █
+		█             █
+		▀▀▀▀█     █▀▀▀▀
+		    █     █
+		    ▀▀▀▀▀▀▀
 	]])
 
 	-- Moving left across an edge after rotation
 	b:startPiece(piece.I, 7)
-	b:rotatePieceRight()
+	b:rotatePiece(1)
 	b:shiftPiece(-1)
 	b:setPiece()
-	check(common.gridRepr(common.gridReflectY(b.upper_grid))).is(common.dedent [[
-		x__________________x
-		xxxxx______________x
-		x__________________x
-		x__________________x
+	checkBoardGridIs(b, [[
+		    ██▀▀▀▀█
+		    ██▀▀▀▀█
+		█████▀    ▀▀▀▀█
+		█             █
+		█             █
+		▀▀▀▀█     █▀▀▀▀
+		    █     █
+		    ▀▀▀▀▀▀▀
 	]])
 
 	b:startPiece(piece.I, 6)
@@ -118,18 +154,15 @@ notion("piece movement across edges works correctly", function()
 	check(b:dropPiece()).is(true)
 	check(b:dropPiece()).is(false)
 	b:setPiece()
-	check(common.gridRepr(common.gridReflectY(b.upper_grid))).is(common.dedent [[
-		x__________________x
-		xxxxx______________x
-		x__________________x
-		x__________________x
-	]])
-	check(common.gridRepr(b.lower_grid)).is(common.dedent [[
-		xxxx_
-		_____
-		_____
-		_____
-		_____
+	checkBoardGridIs(b, [[
+		    ██▀▀▀▀█
+		    ██▀▀▀▀█
+		██████▄▄▄ ▀▀▀▀█
+		█             █
+		█             █
+		▀▀▀▀█     █▀▀▀▀
+		    █     █
+		    ▀▀▀▀▀▀▀
 	]])
 end)
 
@@ -143,19 +176,17 @@ notion("piece movement blocked by collision", function()
 	b:dropPiece()
 	b:dropPiece()
 	b:setPiece()
-	check(common.gridRepr(common.gridReflectY(b.upper_grid))).is(common.dedent [[
-		____________________
-		____________________
-		____________________
-	]])
-	check(common.gridRepr(b.lower_grid)).is(common.dedent [[
-		_____
-		_x___
-		_xx__
-		_____
-		_____
+	checkBoardGridIs(b, [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█    ▄      █
+		█    ▀▀     █
+		█▄▄▄     ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
 	]])
 
+	-- Rotating next to a piece
 	b:startPiece(piece.S, 3)
 	check(b:dropPiece()).is(true)
 	check(b:dropPiece()).is(true)
@@ -164,19 +195,46 @@ notion("piece movement blocked by collision", function()
 	check(b:shiftPiece(1)).is(true)
 	check(b:shiftPiece(-1)).is(true)
 	check(b:shiftPiece(-1)).is(false)
-	check(b:rotatePieceRight()).is(false)
+	check(b:rotatePiece(1)).is(false)
 	b:setPiece()
-	check(common.gridRepr(common.gridReflectY(b.upper_grid))).is(common.dedent [[
-		____________________
-		____________________
-		____________________
+	checkBoardGridIs(b, [[
+	     █▀▀▀▀▀█
+	  ▄▄▄█     █▄▄▄
+	  █    ▄█▄    █
+	  █    ▀▀▀    █
+	  █▄▄▄     ▄▄▄█
+	     █     █
+	     ▀▀▀▀▀▀▀
 	]])
-	check(common.gridRepr(b.lower_grid)).is(common.dedent [[
-		__x__
-		_xxx_
-		_xxx_
-		_____
-		_____
+
+	-- Rotating next to an edge
+	b = board:new {width = 5, depth = 3}
+	b:startPiece(piece.S, 1)
+	check(b:dropPiece()).is(true)
+	check(b:rotatePiece(-1)).is(false)
+	b:setPiece()
+	checkBoardGridIs(b, [[
+	     █▀▀▀▀▀█
+	  ▄▄▄██▄   █▄▄▄
+	  █    ▀      █
+	  █           █
+	  █▄▄▄     ▄▄▄█
+	     █     █
+	     ▀▀▀▀▀▀▀
+	]])
+
+	b:startPiece(piece.Z, 4)
+	check(b:dropPiece()).is(true)
+	check(b:rotatePiece(1)).is(false)
+	b:setPiece()
+	checkBoardGridIs(b, [[
+	     █▀▀▀▀▀█
+	  ▄▄▄██▄ ▄██▄▄▄
+	  █    ▀ ▀    █
+	  █           █
+	  █▄▄▄     ▄▄▄█
+	     █     █
+	     ▀▀▀▀▀▀▀
 	]])
 end)
 

@@ -73,7 +73,9 @@ function love.keypressed(key)
 		game.board:shiftPiece(1)
 	elseif key == 'e' then
 		dropPiece()
+	elseif key == 'r' then
+		game.board:rotatePiece(-1)
 	elseif key == 's' then
-		game.board:rotatePieceRight()
+		game.board:rotatePiece(1)
 	end
 end

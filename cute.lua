@@ -47,10 +47,13 @@ getAllFiles = function(folder, allFiles)
   return allFiles
 end
 
+currentFile = nil
+
 local addTests = function (files)
   for i, f in ipairs(files) do
     if stringEnds(f, "_tests.lua") then
       local chunk = love.filesystem.load(f)
+	  currentFile = f
       chunk()
     end
   end
@@ -119,7 +122,7 @@ end
 local runAllTests = function (headlessMode)
   print("running tests...")
   for i, test in ipairs(getTests()) do
-    print(test.title)
+    print(test.file .. ": " .. test.title)
     local passed, errorMsg = pcall(test.run)
     resetMinions()
     if (not passed) then
@@ -239,6 +242,7 @@ end
 
 notion = function (title, testMethod)
   table.insert(tests, {
+	file=currentFile,
     title=title,
     run=testMethod
   })
@@ -246,6 +250,7 @@ end
 
 f_notion = function (title, testMethod)
   table.insert(focusTests, {
+	file=currentFile,
     title=title,
     run=testMethod,
     focused=true
@@ -262,7 +267,7 @@ local function repr(x)
     local result = "[[\n"
 
     for line in x:gmatch("([^\n]+)") do
-      result = result .. "  " .. line .. "\n"
+      result = result .. "\t" .. line .. "\n"
     end
 
     return result .. "\n]]"
@@ -271,14 +276,14 @@ local function repr(x)
   end
 end
 
-local _is = function (testVals, refVals)
+local _is = function (testVals, refVals, errorOffset)
   if #testVals ~= #refVals then
-    error("Different number of return values: got " .. #testVals .. ", expected " .. #refVals, 3)
+    error("Different number of return values: got " .. #testVals .. ", expected " .. #refVals, 3 + errorOffset)
   end
 
-  ok = true
-  refString = ""
-  testString = ""
+  local ok = true
+  local refString = ""
+  local testString = ""
 
   for i, testVal in ipairs(testVals) do
     refString = refString .. repr(refVals[i]) .. " "
@@ -290,11 +295,11 @@ local _is = function (testVals, refVals)
   end
 
   if not ok then
-    error("Got " .. testString .. ", expected " .. refString, 3)
+    error("Got " .. testString .. ", expected " .. refString, 3 + errorOffset)
   end
 end
 
-local _shallowMatches = function (testTable, refTable)
+local _shallowMatches = function (testTable, refTable, errorOffset)
   if #testTable ~= #refTable then
     local t1 = "t1: "
     local t2 = "t2: "
@@ -304,14 +309,14 @@ local _shallowMatches = function (testTable, refTable)
     for _, o in ipairs(refTable) do
       t2 = t2 .. tostring(o) .. " "
     end
-    error("Tables are different sizes: " .. t1 .. " | " .. "t2", 3)
+    error("Tables are different sizes: " .. t1 .. " | " .. "t2", 3 + errorOffset)
   end
 
   for k, item in pairs(testTable) do
     if item ~= refTable[k] then
       error("Mismatch for element with key " .. tostring(k) ..
             ": " .. tostring(item) .. " ~= " ..
-            tostring(refTable[k]), 3)
+            tostring(refTable[k]), 3 + errorOffset)
     end
   end
 
@@ -319,11 +324,19 @@ local _shallowMatches = function (testTable, refTable)
 end
 
 check = function (...)
-  testVals = {...}
-  return {
-    is = function (...) _is(testVals, {...}) end,
-    shallowMatches = function (refTable) _shallowMatches(testVals[1], refTable) end
+  local testVals = {...}
+  local errorOffset = 0
+  local checker
+  checker = {
+    is = function (...) _is(testVals, {...}, errorOffset) end,
+    shallowMatches = function (refTable) _shallowMatches(testVals[1], refTable, errorOffset) end,
+    errorOffset = function(o)
+      errorOffset = o
+      return checker
+    end,
   }
+
+  return checker
 end
 
 -- options and running
