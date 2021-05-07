@@ -225,13 +225,12 @@ notion("piece movement blocked by collision", function()
 	]])
 
 	-- Kick to the left
-	b:startPiece(piece.MINI_J, 4)
-	check(b:dropPiece()).is(true)
+	b:startPiece(piece.Z, 4)
 	check(b:rotatePiece(1)).is(true)
 	b:setPiece()
 	checkBoardGridIs(b, [[
-	     █▀▀▀▀▀█
-	  ▄▄▄█▄█▀█▄█▄▄▄
+	     █▀▀██▀█
+	  ▄▄▄█▄█▀▀▀█▄▄▄
 	  █           █
 	  █           █
 	  █▄▄▄     ▄▄▄█
@@ -244,8 +243,8 @@ notion("piece movement blocked by collision", function()
 	check(b:rotatePiece(1)).is(true)
 	b:setPiece()
 	checkBoardGridIs(b, [[
-	     █▀▀▀▀▀█
-	  ▄▄▄█▄█▀█▄█▄▄▄
+	     █▀▀██▀█
+	  ▄▄▄█▄█▀▀▀█▄▄▄
 	  █         ▄ █
 	  █         █ █
 	  █▄▄▄     ▄█▄█
