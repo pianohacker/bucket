@@ -1,6 +1,6 @@
 -- Modified from upstream
 --
--- Licensed under MIT: 
+-- Licensed under MIT:
 --
 -- Copyright (c) 2016 Gareth Rogers
 --
@@ -21,7 +21,7 @@
 -- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
---
+
 local cute = {}
 local version = "0.4.0"
 local padding = 16
