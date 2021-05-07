@@ -1,6 +1,11 @@
 -- lick.lua
 --
 -- simple LIVECODING environment with löve, overwrites love.run, pressing all errors to the terminal/console
+--
+-- Modified from upstream (https://github.com/usysrc/LICK/blob/master/lick.lua).
+--
+-- FIXME: LICK does not currently have a license, add info when
+-- https://github.com/usysrc/LICK/issues/8 is resolved.
 
 local lick = {}
 lick.files = {"main.lua"}
