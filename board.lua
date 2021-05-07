@@ -25,7 +25,7 @@
 -- of pieces as they rotate around the board.
 --
 -- Note that when these coordinates are used to refer to specific points, they refer to the far-left
--- point of the the same square. (The top-left of squares on the north or bottom sides, the top-right
+-- point of the the same square. (The top-left of squares on the north side, the top-right
 -- of squares on the east side, etc.)
 
 local common = require("common")
