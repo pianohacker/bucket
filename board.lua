@@ -175,16 +175,32 @@ end
 function board:rotatePiece(direction)
 	self:markChanged()
 
-	local newT = self.pieceT - self.piece.xOffset
 	local piece
 	if direction == -1 then
 		piece = self.piece:rotateLeft()
 	else
 		piece = self.piece:rotateRight()
 	end
-	newT, _ = self:normalizePoint(newT + piece.xOffset, 1)
 
-	if self:pieceWouldCollide(newT, self.pieceR, piece) then
+	local newTBase = self.pieceT - self.piece.xOffset + piece.xOffset
+	local newT
+
+	for offset = 0,math.floor(piece.width / 2) do
+		for offsetDirection = -1,1,2 do
+			local newTCandidate, _ = self:normalizePoint(newTBase + offset * offsetDirection, 1)
+
+			if not self:pieceWouldCollide(newTCandidate, self.pieceR, piece) then
+				newT = newTCandidate
+				break
+			end
+		end
+
+		if newT ~= nil then
+			break
+		end
+	end
+
+	if newT == nil then
 		return false
 	end
 

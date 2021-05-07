@@ -208,29 +208,77 @@ notion("piece movement blocked by collision", function()
 	]])
 
 	-- Rotating next to an edge
+	-- Kick to the right
 	b = board:new {width = 5, depth = 3}
 	b:startPiece(piece.S, 1)
 	check(b:dropPiece()).is(true)
-	check(b:rotatePiece(-1)).is(false)
+	check(b:rotatePiece(-1)).is(true)
 	b:setPiece()
 	checkBoardGridIs(b, [[
 	     █▀▀▀▀▀█
-	  ▄▄▄██▄   █▄▄▄
-	  █    ▀      █
+	  ▄▄▄█▄█▀  █▄▄▄
+	  █           █
 	  █           █
 	  █▄▄▄     ▄▄▄█
 	     █     █
 	     ▀▀▀▀▀▀▀
 	]])
 
-	b:startPiece(piece.Z, 4)
+	-- Kick to the left
+	b:startPiece(piece.MINI_J, 4)
 	check(b:dropPiece()).is(true)
-	check(b:rotatePiece(1)).is(false)
+	check(b:rotatePiece(1)).is(true)
 	b:setPiece()
 	checkBoardGridIs(b, [[
 	     █▀▀▀▀▀█
-	  ▄▄▄██▄ ▄██▄▄▄
-	  █    ▀ ▀    █
+	  ▄▄▄█▄█▀█▄█▄▄▄
+	  █           █
+	  █           █
+	  █▄▄▄     ▄▄▄█
+	     █     █
+	     ▀▀▀▀▀▀▀
+	]])
+
+	-- Kick two to the left
+	b:startPiece(piece.I, 10)
+	check(b:rotatePiece(1)).is(true)
+	b:setPiece()
+	checkBoardGridIs(b, [[
+	     █▀▀▀▀▀█
+	  ▄▄▄█▄█▀█▄█▄▄▄
+	  █         ▄ █
+	  █         █ █
+	  █▄▄▄     ▄█▄█
+	     █     █
+	     ▀▀▀▀▀▀▀
+	]])
+
+	-- Unsuccessfully rotating next to an edge
+	b = board:new {width = 5, depth = 3}
+	b:startPiece(piece.O, 1)
+	check(b:dropPiece()).is(true)
+	b:setPiece()
+	b:startPiece(piece.O, 4)
+	check(b:dropPiece()).is(true)
+	b:setPiece()
+	checkBoardGridIs(b, [[
+	     █▀▀▀▀▀█
+	  ▄▄▄███ ███▄▄▄
+	  █           █
+	  █           █
+	  █▄▄▄     ▄▄▄█
+	     █     █
+	     ▀▀▀▀▀▀▀
+	]])
+
+	b:startPiece(piece.I, 3)
+	check(b:rotatePiece(-1)).is(false)
+	check(b:rotatePiece(1)).is(false)
+	b:setPiece()
+	checkBoardGridIs(b, [[
+	     █▀▀█▀▀█
+	  ▄▄▄███████▄▄▄
+	  █     ▀     █
 	  █           █
 	  █▄▄▄     ▄▄▄█
 	     █     █
