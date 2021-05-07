@@ -49,6 +49,16 @@ notion("remapPoint works correctly", function()
 	check(b:remapPoint(12, -4, 4)).is(20, -3)
 end)
 
+function boardFrom(gridString)
+	local upper, lower = common.grid(gridString)
+
+	local b = board:new {width = #lower, depth = #upper[1]}
+	b.upper_grid = upper
+	b.lower_grid = lower
+
+	return b
+end
+
 function checkBoardGridIs(b, gridString)
 	gridString = common.dedent(gridString)
 
@@ -259,14 +269,7 @@ notion("piece movement blocked by collision", function()
 	]])
 
 	-- Unsuccessfully rotating next to an edge
-	b = board:new {width = 5, depth = 3}
-	b:startPiece(piece.O, 1)
-	check(b:dropPiece()).is(true)
-	b:setPiece()
-	b:startPiece(piece.O, 4)
-	check(b:dropPiece()).is(true)
-	b:setPiece()
-	checkBoardGridIs(b, [[
+	b = boardFrom [[
 	     █▀▀▀▀▀█
 	  ▄▄▄███ ███▄▄▄
 	  █           █
@@ -274,7 +277,7 @@ notion("piece movement blocked by collision", function()
 	  █▄▄▄     ▄▄▄█
 	     █     █
 	     ▀▀▀▀▀▀▀
-	]])
+	]]
 
 	b:startPiece(piece.I, 3)
 	check(b:rotatePiece(-1)).is(false)

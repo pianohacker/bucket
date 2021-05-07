@@ -58,8 +58,20 @@ function dedent(s)
 	return result
 end
 
+-- [top][bottom]
+local CHAR_MAPPING = {
+	[false] = {
+		[false] = " ",
+		[true] = "▄",
+	},
+	[true] = {
+		[false] = "▀",
+		[true] = "█",
+	},
+}
+
 local function gridFilled(s)
-	return s ~= '_' and s ~= ''
+	return s == CHAR_MAPPING[true][true] or s == CHAR_MAPPING[true][false], s == CHAR_MAPPING[true][true] or s == CHAR_MAPPING[false][true]
 end
 
 function grid(gridString)
@@ -68,33 +80,80 @@ function grid(gridString)
 		table.insert(lines, str)
 	end
 
-	local result = {}
+	local rows = {}
+	for y, line in ipairs(lines) do
+		rows[y*2-1] = {}
+		rows[y*2] = {}
 
-	local pos = 1
-	while pos < #lines do
-		local cols = {}
-
-		for x = 1,#lines[pos] do
-			cols[x] = {gridFilled(lines[pos]:sub(x, x))}
-		end
-
-		for y = 2,#lines do
-			pos = pos + 1
-
-			local line = lines[pos]
-			if not line or #line ~= #cols then
-				break
+		local x = 1
+		local pos = 1
+		while pos <= #line do
+			if line:sub(pos, pos) == ' ' then
+				rows[y*2-1][x], rows[y*2][x] = false, false
+				pos = pos + 1
+			else
+				rows[y*2-1][x], rows[y*2][x] = gridFilled(line:sub(pos, pos+2))
+				pos = pos + 3
 			end
-
-			for x = 1,#line do
-				cols[x][y] = gridFilled(line:sub(x, x))
-			end
+			x = x + 1
 		end
-
-		table.insert(result, cols)
 	end
 
-	return unpack(result)
+	local depth = 0
+	while not rows[1][depth + 1] and depth < #rows[1] do
+		depth = depth + 1
+	end
+
+	assert(depth ~= #rows[1])
+
+	local width = #rows[1] - depth - 2
+
+	local upperGrid = {}
+	local lowerGrid = {}
+
+	for t = 1,width*4 do
+		upperGrid[t] = {}
+	end
+
+	for x = 1,width do
+		lowerGrid[x] = {}
+	end
+
+	assert(#rows == math.ceil((1 + depth + width + depth + 1)/2)*2)
+	assert(#rows[1] == depth + 1 + width + 1)
+	assert(#rows[depth + 1] == 1 + depth + width + depth + 1)
+
+	for t = 1,width do
+		for r = 1,depth do
+			upperGrid[t][r] = rows[1 + depth - r + 1][depth + 1 + t]
+		end
+	end
+
+	for t = width+1,width*2 do
+		for r = 1,depth do
+			upperGrid[t][r] = rows[1 + depth + t - width][1 + depth + width + r]
+		end
+	end
+
+	for t = width*2+1,width*3 do
+		for r = 1,depth do
+			upperGrid[t][r] = rows[1 + depth + width + r][depth + 1 + width + 1 - (t - width * 2)]
+		end
+	end
+
+	for t = width*3+1,width*4 do
+		for r = 1,depth do
+			upperGrid[t][r] = rows[1 + depth + width + 1 - (t - width * 3)][1 + depth + 1 - r]
+		end
+	end
+
+	for x = 1,width do
+		for y = 1,width do
+			lowerGrid[x][y] = rows[1 + depth + y][1 + depth + x]
+		end
+	end
+
+	return upperGrid, lowerGrid
 end
 
 function basicColsRepr(cols)
@@ -136,18 +195,6 @@ function basicGridRepr(rows)
 
 	return table.concat(result, "\n")
 end
-
--- [top][bottom]
-local CHAR_MAPPING = {
-	[false] = {
-		[false] = " ",
-		[true] = "▄",
-	},
-	[true] = {
-		[false] = "▀",
-		[true] = "█",
-	},
-}
 
 function gridRepr(upper, lower)
 	local depth = #upper[1]

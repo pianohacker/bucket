@@ -19,33 +19,21 @@ notion("dedent works correctly", function()
 	]])).is("\tabc\ndef\n\tced")
 end)
 
-notion("grid works correctly for a single grid", function()
-	local g = common.grid [[
-		_x
-		xx
-		x_
-		x_
+notion("grid works correctly", function()
+	local gridStr = [[
+	     █▀▀██▀█
+	  ▄▄▄█▄█▀▀▀█▄▄▄
+	  █   ▄ ▄  ▄▄▀█
+	  ██ ▀█ ▄██▀█ █
+	  █▄▄▄   ▄ ▄█▄█
+	     █ █ █ █
+	     ▀▀▀▀▀▀▀
 	]]
+	local upper, lower = common.grid(gridStr)
+	check(#upper).is(20)
+	check(#upper[1]).is(3)
+	check(#lower).is(5)
+	check(#lower[1]).is(5)
 
-	check(g[1]).shallowMatches({false, true, true, true})
-	check(g[2]).shallowMatches({true, true, false, false})
-end)
-
-notion("grid works correctly for multiple grids", function()
-	local g1, g2 = common.grid [[
-		_x
-		_x
-		x_
-		xx
-		x_xx
-		___x
-	]]
-
-	check(g1[1]).shallowMatches({false, false, true, true})
-	check(g1[2]).shallowMatches({true, true, false, true})
-
-	check(g2[1]).shallowMatches({true, false})
-	check(g2[2]).shallowMatches({false, false})
-	check(g2[3]).shallowMatches({true, false})
-	check(g2[4]).shallowMatches({true, true})
+	check(common.gridRepr(upper, lower)).is(common.dedent(gridStr))
 end)
