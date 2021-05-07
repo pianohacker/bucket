@@ -1,3 +1,9 @@
+-- Copyright (c) Jesse Weaver, 2021
+--
+-- This Source Code Form is subject to the terms of the Mozilla Public
+-- License, v. 2.0. If a copy of the MPL was not distributed with this
+-- file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
 -- Board logic and drawing
 --
 -- The Bucket board uses a radial coordinate system, (t, r), where t is between 1 and self.circumf,
