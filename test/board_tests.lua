@@ -183,16 +183,7 @@ notion("piece movement across edges works correctly", function()
 end)
 
 notion("piece movement blocked by collision", function()
-	local b = board:new {width = 5, depth = 3}
-
-	b:startPiece(piece.MINI_J, 7)
-	b:dropPiece()
-	b:dropPiece()
-	b:dropPiece()
-	b:dropPiece()
-	b:dropPiece()
-	b:setPiece()
-	checkBoardGridIs(b, [[
+	local b = boardFrom [[
 		   █▀▀▀▀▀█
 		▄▄▄█     █▄▄▄
 		█    ▄      █
@@ -200,7 +191,7 @@ notion("piece movement blocked by collision", function()
 		█▄▄▄     ▄▄▄█
 		   █     █
 		   ▀▀▀▀▀▀▀
-	]])
+	]]
 
 	-- Rotating next to a piece
 	b:startPiece(piece.S, 3)
