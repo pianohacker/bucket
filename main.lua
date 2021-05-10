@@ -60,6 +60,7 @@ function dropPiece()
 		game.board:startPiece(piece.random())
 	elseif not game.board:dropPiece() then
 		game.board:setPiece()
+		game.board:clearLines()
 		game.board:startPiece(piece.random())
 	end
 end

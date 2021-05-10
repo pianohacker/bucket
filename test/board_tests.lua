@@ -315,3 +315,67 @@ notion("isSquareFilled works correctly", function()
 		)
 	end
 end)
+
+notion("clearLines works correctly", function()
+	-- Basic clearing in Y
+	local b = boardFrom [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█    ██     █
+		█    ██     █
+		█▄▄▄ ▀▀  ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]]
+	b:clearLines()
+	checkBoardGridIs(b, [[
+	     █▀▀▀▀▀█
+	  ▄▄▄█     █▄▄▄
+	  █           █
+	  █           █
+	  █▄▄▄     ▄▄▄█
+	     █     █
+	     ▀▀▀▀▀▀▀
+	]])
+
+	-- Clearing and shifting in Y
+	b = boardFrom [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█    ███▄   █
+		█   ███ ▀   █
+		█▄▄▄ ▀▀  ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]]
+	b:clearLines()
+	checkBoardGridIs(b, [[
+	     █▀▀▀▀▀█
+	  ▄▄▄█     █▄▄▄
+	  █      █▄   █
+	  █     █ ▀   █
+	  █▄▄▄     ▄▄▄█
+	     █     █
+	     ▀▀▀▀▀▀▀
+	]])
+
+	b = boardFrom [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█   █ ██▄   █
+		█   ██ █▀   █
+		█▄▄▄▀  ▀ ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]]
+	b:clearLines()
+	checkBoardGridIs(b, [[
+	     █▀▀▀▀▀█
+	  ▄▄▄█     █▄▄▄
+	  █     █▄    █
+	  █    █ ▀    █
+	  █▄▄▄     ▄▄▄█
+	     █     █
+	     ▀▀▀▀▀▀▀
+	]])
+end)

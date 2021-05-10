@@ -330,4 +330,57 @@ function board:fillGridSquare(t, r)
 	end
 end
 
+function board:clearLines()
+	local xMap = {}
+
+	local xRightShift = 0
+	for x = math.ceil(self.width/2),1,-1 do
+		local lineFilled = true
+
+		for y = 1,self.width do
+			if not self.lower_grid[x][y] then
+				lineFilled = false
+				break
+			end
+		end
+
+		if lineFilled then
+			xRightShift = xRightShift + 1
+		else
+			xMap[x] = x + xRightShift
+		end
+	end
+
+	local xLeftShift = 0
+	for x = math.ceil(self.width/2)+1,self.width do
+		local lineFilled = true
+
+		for y = 1,self.width do
+			if not self.lower_grid[x][y] then
+				lineFilled = false
+				break
+			end
+		end
+
+		if lineFilled then
+			xLeftShift = xLeftShift + 1
+		else
+			xMap[x] = x - xLeftShift
+		end
+	end
+
+	local oldLowerGrid = self.lower_grid
+	self:clear()
+
+	for x = 1,self.width do
+		for y = 1,self.width do
+			local newX = xMap[x]
+
+			if newX then
+				self.lower_grid[newX][y] = oldLowerGrid[x][y]
+			end
+		end
+	end
+end
+
 module("board")
