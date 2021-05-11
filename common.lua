@@ -6,6 +6,8 @@
 
 module("common", package.seeall)
 
+--- Dump out multiple expressions.
+-- Prints out the value of multiple expressions, given as strings.
 function dump(...)
 	local exprs = {...}
 
@@ -30,10 +32,15 @@ function dump(...)
 	setmetatable(scope, {__index = getfenv(2)})
 
 	for i, expr in ipairs(exprs) do
-		local chunk = loadstring("return " .. expr)
-		setfenv(chunk, scope)
-		local result = chunk()
-		io.write(string.format("%s = %s", expr, result))
+		local chunk, err = loadstring("return " .. expr)
+
+		if err then
+			io.write(string.format("%s = err: %s", expr, err))
+		else
+			setfenv(chunk, scope)
+			local result = chunk()
+			io.write(string.format("%s = %s", expr, result))
+		end
 
 		if i ~= #exprs then
 			io.write(", ")
@@ -41,4 +48,168 @@ function dump(...)
 	end
 
 	io.write("\n")
+end
+
+object = {}
+function object:new(...)
+	return self:from({}, ...)
+end
+function object:from(o, ...)
+	local metatable = {
+		__add = self.__add,
+		__sub = self.__sub,
+		__mul = self.__mul,
+		__div = self.__div,
+		__mod = self.__mod,
+		__pow = self.__pow,
+		__unm = self.__unm,
+		__concat = self.__concat,
+		__len = self.__len,
+		__eq = self.__eq,
+		__lt = self.__lt,
+		__le = self.__le,
+		__index = self.__index or self,
+		__newindex = self.__newindex,
+		__call = self.__call,
+	}
+	setmetatable(o, metatable)
+
+	if o.init then
+		o:init(...)
+	end
+
+	return o
+end
+
+list = object:new()
+list.concat = table.concat
+list.insert = table.insert
+list.maxn = table.maxn
+list.remove = table.remove
+list.sort = table.sort
+
+function list:values()
+	local i = 0
+
+	local function iter()
+		i = i + 1
+		if i <= #self then
+			return self[i]
+		else
+			return nil
+		end
+	end
+
+	return iter
+end
+
+function list:all()
+	for x in self:values() do
+		if not x then
+			return false
+		end
+	end
+
+	return true
+end
+
+grid = object:new()
+
+local checkedGridColumn = {}
+function checkedGridColumn:new(g, x)
+	local o = {
+		g = g,
+		x = x,
+	}
+	setmetatable(o, checkedGridColumn)
+	return o
+end
+
+function checkedGridColumn:_checkCoords(y, op)
+	if self.x < 1 or self.x > self.g.width or y < 1 or y > self.g.height then
+		error(string.format("attempt to %s grid at out-of-bounds (%d, %d)", op, self.x, y))
+	end
+end
+
+function checkedGridColumn:__index(y)
+	if type(y) == "number" then
+		self:_checkCoords(y, "get")
+		return self.g[self.x][y]
+	elseif rawget(self, y) then
+		return rawget(self, y)
+	else
+		return checkedGridColumn[y]
+	end
+end
+
+function checkedGridColumn:__newindex(y, val)
+	if type(y) == "number" then
+		self:_checkCoords(y, "set")
+		self.g[self.x][y] = val
+	else
+		rawset(self, y, val)
+	end
+end
+
+local checkedGrid = object:new()
+
+function checkedGrid:init(g)
+	self.g = g
+end
+function checkedGrid:__index(x)
+	if type(x) == "number" then
+		return checkedGridColumn:new(self.g, x)
+	elseif rawget(self, x) then
+		return rawget(self, x)
+	elseif checkedGrid[x] then
+		return checkedGrid[x]
+	else
+		return self.g[x]
+	end
+end
+
+function grid:new(...)
+	local o = object.new(grid, ...)
+	o:clear()
+
+	if DEBUG_ASSERTS then
+		return checkedGrid:new(o)
+	else
+		return o
+	end
+end
+
+function grid:init(width, height, default)
+	self.width = width
+	self.height = height
+	self.default = default
+end
+
+function grid:clear()
+	for x = 1,self.width do
+		self[x] = {}
+		for y = 1,self.height do
+			self[x][y] = self.default
+		end
+	end
+end
+
+function grid:row(y)
+	local result = list:new()
+
+	for x = 1,self.width do
+		result:insert(self[x][y])
+	end
+
+	return result
+end
+
+function grid:col(x)
+	local result = list:new()
+
+	for y = 1,self.height do
+		result:insert(self[x][y])
+	end
+
+	return result
 end

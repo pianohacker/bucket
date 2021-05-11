@@ -30,38 +30,19 @@
 
 local common = require("common")
 
-board = {}
-board.__index = board
+board = common.object:new()
 
-function board:new(o)
-	o.circumf = o.width * 4
-	o.rMin = -o.width + 1
-	o.generation = 1
-
-	setmetatable(o, self)
-
-	o:clear()
-
-	return o
+function board:init(o)
+	self.width = o.width
+	self.depth = o.depth
+	self.circumf = self.width * 4
+	self.generation = 1
+	self:clear()
 end
 
 function board:clear()
-	self.upper_grid = {}
-	for t = 1,self.circumf do
-		self.upper_grid[t] = {}
-		for r = 1,self.depth do
-			self.upper_grid[t][r] = false
-		end
-	end
-
-	self.lower_grid = {}
-	for x = 1,self.width do
-		self.lower_grid[x] = {}
-		for y = 1,self.width do
-			self.lower_grid[x][y] = false
-		end
-	end
-
+	self.upperGrid = common.grid:new(self.circumf, self.depth, false)
+	self.lowerGrid = common.grid:new(self.width, self.width, false)
 	self.piece = nil
 end
 
@@ -310,42 +291,35 @@ function board:isGridSquareFilled(t, r)
 	t, r = self:normalizePoint(t, r)
 
 	if r > 0 then
-		return self.upper_grid[t][r]
+		return self.upperGrid[t][r]
 	end
 
 	local x, y = self:radialToGrid(t, r)
 
-	return self.lower_grid[x][y]
+	return self.lowerGrid[x][y]
 end
 
 function board:fillGridSquare(t, r)
 	t, r = self:normalizePoint(t, r)
 
 	if r > 0 then
-		self.upper_grid[t][r] = true
+		self.upperGrid[t][r] = true
 	else
 		local x, y = self:radialToGrid(t, r)
 
-		self.lower_grid[x][y] = true
+		self.lowerGrid[x][y] = true
 	end
 end
 
 function board:clearLines()
 	local xMap = {}
+	local anyCleared = false
 
 	local xRightShift = 0
 	for x = math.ceil(self.width/2),1,-1 do
-		local lineFilled = true
-
-		for y = 1,self.width do
-			if not self.lower_grid[x][y] then
-				lineFilled = false
-				break
-			end
-		end
-
-		if lineFilled then
+		if self.lowerGrid:col(x):all() then
 			xRightShift = xRightShift + 1
+			anyCleared = true
 		else
 			xMap[x] = x + xRightShift
 		end
@@ -353,23 +327,15 @@ function board:clearLines()
 
 	local xLeftShift = 0
 	for x = math.ceil(self.width/2)+1,self.width do
-		local lineFilled = true
-
-		for y = 1,self.width do
-			if not self.lower_grid[x][y] then
-				lineFilled = false
-				break
-			end
-		end
-
-		if lineFilled then
+		if self.lowerGrid:col(x):all() then
 			xLeftShift = xLeftShift + 1
+			anyCleared = true
 		else
 			xMap[x] = x - xLeftShift
 		end
 	end
 
-	local oldLowerGrid = self.lower_grid
+	local oldLowerGrid = self.lowerGrid
 	self:clear()
 
 	for x = 1,self.width do
@@ -377,7 +343,7 @@ function board:clearLines()
 			local newX = xMap[x]
 
 			if newX then
-				self.lower_grid[newX][y] = oldLowerGrid[x][y]
+				self.lowerGrid[newX][y] = oldLowerGrid[x][y]
 			end
 		end
 	end

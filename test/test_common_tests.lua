@@ -11,12 +11,12 @@ notion("dedent works correctly", function()
 		abc
 		def
 			ced
-	]])).is("abc\ndef\n\tced")
+	]])):is("abc\ndef\n\tced")
 	check(common.dedent([[
 			abc
 		def
 			ced
-	]])).is("\tabc\ndef\n\tced")
+	]])):is("\tabc\ndef\n\tced")
 end)
 
 notion("grid works correctly", function()
@@ -30,10 +30,10 @@ notion("grid works correctly", function()
 	     ▀▀▀▀▀▀▀
 	]]
 	local upper, lower = common.grid(gridStr)
-	check(#upper).is(20)
-	check(#upper[1]).is(3)
-	check(#lower).is(5)
-	check(#lower[1]).is(5)
+	check(upper.width):is(20)
+	check(upper.height):is(3)
+	check(lower.width):is(5)
+	check(lower.height):is(5)
 
-	check(common.gridRepr(upper, lower)).is(common.dedent(gridStr))
+	check(common.gridRepr(upper, lower)):is(common.dedent(gridStr))
 end)

@@ -23,7 +23,7 @@ function dedent(s)
 		return s
 	end
 
-	local result = {}
+	local result = common.list:new()
 
 	local pos = 1
 	local nextstart, nextend = s:find(sep)
@@ -37,7 +37,7 @@ function dedent(s)
 			local chunk = s:sub(pos, nextstart - 1)
 
 			if not chunk:match("^%s+$") then
-				table.insert(result, chunk)
+				result:insert(chunk)
 			end
 		end
 
@@ -49,11 +49,11 @@ function dedent(s)
 		local chunk = string.sub(s, pos)
 
 		if not chunk:match("^%s+$") then
-			table.insert(result, chunk)
+			result:insert(chunk)
 		end
 	end
 
-	result, _ = table.concat(result, "\n"):gsub("%s+$", "", 1)
+	result, _ = result:concat("\n"):gsub("%s+$", "", 1)
 
 	return result
 end
@@ -75,9 +75,9 @@ local function gridFilled(s)
 end
 
 function grid(gridString)
-	local lines = {}
+	local lines = common.list:new()
 	for str in string.gmatch(dedent(gridString), "([^\n]+)") do
-		table.insert(lines, str)
+		lines:insert(str)
 	end
 
 	local rows = {}
@@ -108,16 +108,8 @@ function grid(gridString)
 
 	local width = #rows[1] - depth - 2
 
-	local upperGrid = {}
-	local lowerGrid = {}
-
-	for t = 1,width*4 do
-		upperGrid[t] = {}
-	end
-
-	for x = 1,width do
-		lowerGrid[x] = {}
-	end
+	local upperGrid = common.grid:new(width*4, depth, false)
+	local lowerGrid = common.grid:new(width, width, false)
 
 	assert(#rows == math.ceil((1 + depth + width + depth + 1)/2)*2)
 	assert(#rows[1] == depth + 1 + width + 1)
@@ -157,10 +149,10 @@ function grid(gridString)
 end
 
 function basicColsRepr(cols)
-	local result = {}
+	local result = common.list:new()
 
 	for y = 1,#cols[1] do
-		local line = {}
+		local line = common.list:new()
 
 		for x = 1,#cols do
 			if cols[x][y] then
@@ -170,10 +162,10 @@ function basicColsRepr(cols)
 			end
 		end
 
-		table.insert(result, table.concat(line, ""))
+		result:insert(line:concat(""))
 	end
 
-	return table.concat(result, "\n")
+	return result:concat("\n")
 end
 
 function basicGridRepr(rows)
@@ -190,88 +182,84 @@ function basicGridRepr(rows)
 			end
 		end
 
-		table.insert(result, string.format("%2d: ", y) .. table.concat(line, ""))
+		result:insert(string.format("%2d: ", y) .. line:concat(""))
 	end
 
-	return table.concat(result, "\n")
+	return result:concat("\n")
 end
 
 function gridRepr(upper, lower)
-	local depth = #upper[1]
-	local width = #lower
+	local depth = upper.height
+	local width = lower.width
 
-	local outGrid = {}
-
-	local function append(s)
-		table.insert(result, s)
-	end
+	local outGrid = common.list:new()
 
 	local function topOrBottomRow(r, tStart, tEnd, tDelta)
-		local row = {}
+		local row = common.list:new()
 
-		for i = 1,depth do
-			table.insert(row, r == 1)
+		for _ = 1,depth do
+			row:insert(r == 1)
 		end
-		table.insert(row, true)
+		row:insert(true)
 		for t = tStart,tEnd,tDelta do
-			table.insert(row, upper[t][r])
+			row:insert(upper[t][r])
 		end
-		table.insert(row, true)
+		row:insert(true)
 		if r == 1 then
-			for i = 1,depth do
-				table.insert(row, true)
+			for _ = 1,depth do
+				row:insert(true)
 			end
 		end
 
 		return row
 	end
 
-	local firstLastRow = {}
+	local firstLastRow = common.list:new()
 	for _ = 1,depth do
-		table.insert(firstLastRow, false)
+		firstLastRow:insert(false)
 	end
 	for _ = 1,width+2 do
-		table.insert(firstLastRow, true)
+		firstLastRow:insert(true)
 	end
-	table.insert(outGrid, firstLastRow)
+	outGrid:insert(firstLastRow)
 
 	for r = depth,1,-1 do
-		table.insert(outGrid, topOrBottomRow(r, 1, width, 1))
+		outGrid:insert(topOrBottomRow(r, 1, width, 1))
 	end
 
 	for y = 1,width do
-		local row = {}
+		local row = common.list:new()
 
-		table.insert(row, true)
+		row:insert(true)
 
 		for r = depth,1,-1 do
-			table.insert(row, upper[width * 4 + 1 - y][r])
+			row:insert(upper[width * 4 + 1 - y][r])
 		end
 
 		for x = 1,width do
-			table.insert(row, lower[x][y])
+			row:insert(lower[x][y])
 		end
 
 		for r = 1,depth do
-			table.insert(row, upper[width + y][r])
+			row:insert(upper[width + y][r])
 		end
 
-		table.insert(row, true)
+		row:insert(true)
 
-		table.insert(outGrid, row)
+		outGrid:insert(row)
 	end
 
 	for r = 1,depth do
-		table.insert(outGrid, topOrBottomRow(r, width*3, width*2+1, -1))
+		outGrid:insert(topOrBottomRow(r, width*3, width*2+1, -1))
 	end
 
-	table.insert(outGrid, firstLastRow)
+	outGrid:insert(firstLastRow)
 
 	if #outGrid % 2 == 1 then
-		table.insert(outGrid, {})
+		outGrid:insert({})
 	end
 
-	local result = {}
+	local result = common.list:new()
 
 	for y = 1,#outGrid,2 do
 		local line = ""
@@ -284,10 +272,10 @@ function gridRepr(upper, lower)
 			]
 		end
 
-		table.insert(result, line)
+		result:insert(line)
 	end
 
-	return table.concat(result, "\n")
+	return result:concat("\n")
 end
 
 function gridReflectY(cols)

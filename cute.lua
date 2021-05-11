@@ -144,6 +144,7 @@ end
 
 local runAllTests = function (headlessMode)
   print("running tests...")
+  DEBUG_ASSERTS = true
   for i, test in ipairs(getTests()) do
     print(test.file .. ": " .. test.title)
     local passed, errorMsg = pcall(test.run)
@@ -299,18 +300,39 @@ local function repr(x)
   end
 end
 
-local _is = function (testVals, refVals, errorOffset)
-  if #testVals ~= #refVals then
-    error("Different number of return values: got " .. #testVals .. ", expected " .. #refVals, 3 + errorOffset)
+local checker = {}
+checker.__index = checker
+
+function checker:new(testVals)
+  local o = {
+    testVals = testVals,
+    _errorOffset = 0,
+  }
+  setmetatable(o, self)
+
+  return o
+end
+
+function checker:errorOffset(o)
+  self._errorOffset = o
+
+  return self
+end
+
+function checker:is(...)
+  local refVals = {...}
+
+  if #self.testVals ~= #refVals then
+    error("Different number of return values: got " .. #self.testVals .. ", expected " .. #refVals, 2 + self._errorOffset)
   end
 
   local ok = true
   local refString = ""
   local testString = ""
 
-  for i, testVal in ipairs(testVals) do
+  for i, testVal in ipairs(self.testVals) do
     refString = refString .. repr(refVals[i]) .. " "
-    testString = testString .. repr(testVals[i]) .. " "
+    testString = testString .. repr(self.testVals[i]) .. " "
 
     if refVals[i] ~= testVal then
       ok = false
@@ -318,48 +340,52 @@ local _is = function (testVals, refVals, errorOffset)
   end
 
   if not ok then
-    error("Got " .. testString .. ", expected " .. refString, 3 + errorOffset)
+    error("Got " .. testString .. ", expected " .. refString, 2 + self._errorOffset)
   end
 end
 
-local _shallowMatches = function (testTable, refTable, errorOffset)
-  if #testTable ~= #refTable then
+function checker:shallowMatches(refTable)
+  if #self.testVals[1] ~= #refTable then
     local t1 = "t1: "
     local t2 = "t2: "
-    for _, o in ipairs(testTable) do
+    for _, o in ipairs(self.testVals[1]) do
       t1 = t1 .. tostring(o) .. " "
     end
     for _, o in ipairs(refTable) do
       t2 = t2 .. tostring(o) .. " "
     end
-    error("Tables are different sizes: " .. t1 .. " | " .. "t2", 3 + errorOffset)
+    error("Tables are different sizes: " .. t1 .. " | " .. t2, 2 + self._errorOffset)
   end
 
-  for k, item in pairs(testTable) do
+  for k, item in pairs(self.testVals[1]) do
     if item ~= refTable[k] then
       error("Mismatch for element with key " .. tostring(k) ..
             ": " .. tostring(item) .. " ~= " ..
-            tostring(refTable[k]), 3 + errorOffset)
+            tostring(refTable[k]), 2 + self._errorOffset)
     end
   end
 
   return true
 end
 
-check = function (...)
-  local testVals = {...}
-  local errorOffset = 0
-  local checker
-  checker = {
-    is = function (...) _is(testVals, {...}, errorOffset) end,
-    shallowMatches = function (refTable) _shallowMatches(testVals[1], refTable, errorOffset) end,
-    errorOffset = function(o)
-      errorOffset = o
-      return checker
-    end,
-  }
+function checker:patternMatches(pattern)
+  if not string.match(self.testVals[1], pattern) then
+    error(string.format("%s did not match pattern %s", repr(self.testVals[1]), repr(pattern)), 2 + self._errorOffset)
+  end
 
-  return checker
+  return true
+end
+
+function checker:stringContains(s)
+  if not string.find(self.testVals[1], s, 1, true) then
+    error(string.format("%s did not contain string %s", repr(self.testVals[1]), repr(s)), 2 + self._errorOffset)
+  end
+
+  return true
+end
+
+check = function (...)
+  return checker:new({...})
 end
 
 -- options and running
