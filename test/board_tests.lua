@@ -12,7 +12,7 @@ local piece = require("piece")
 
 local common = require("test.common")
 
-notion("radialToGrid works correctly", function()
+notion("radialToGrid translates accurately", function()
 	local b = board:new {width = 5, depth = 3}
 
 	check(b:radialToGrid(3, 0)):is(3, 1)
@@ -28,14 +28,14 @@ notion("radialToGrid works correctly", function()
 	check(b:radialToGrid(20, 0)):is(1, 1)
 end)
 
-notion("radialToGrid with fixed side works correctly at edge", function()
+notion("radialToGrid with fixed side translates correctly at edge", function()
 	local b = board:new {width = 5, depth = 3}
 
 	check(b:radialToGrid(20, 0, 4)):is(1, 1)
 	check(b:radialToGrid(21, 0, 4)):is(1, 0)
 end)
 
-notion("remapPoint works correctly", function()
+notion("remapPoint translates correctly to all sides", function()
 	local b = board:new {width = 5, depth = 3}
 
 	check(b:remapPoint(2, 0, 1)):is(2, 0)
@@ -47,6 +47,24 @@ notion("remapPoint works correctly", function()
 	check(b:remapPoint(12, -4, 2)):is(6, -1)
 	check(b:remapPoint(12, -4, 3)):is(12, -4)
 	check(b:remapPoint(12, -4, 4)):is(20, -3)
+end)
+
+notion("gridToRadial translates accurately", function()
+	local b = board:new {width = 5, depth = 3}
+
+	check(b:gridToRadial(2, 0)):is(2, 1)
+	check(b:gridToRadial(4, -1)):is(4, 2)
+	check(b:gridToRadial(3, 2)):is(3, -1)
+	check(b:gridToRadial(5, 5)):is(5, -4)
+
+	check(b:gridToRadial(6, 2)):is(7, 1)
+	check(b:gridToRadial(8, 4)):is(9, 3)
+
+	check(b:gridToRadial(2, 6)):is(14, 1)
+	check(b:gridToRadial(4, 8)):is(12, 3)
+
+	check(b:gridToRadial(0, 2)):is(19, 1)
+	check(b:gridToRadial(-2, 4)):is(17, 3)
 end)
 
 function boardFrom(gridString)
@@ -67,7 +85,7 @@ function checkBoardGridIs(b, gridString)
 	):errorOffset(1):is(gridString)
 end
 
-notion("piece movement works correctly", function()
+notion("unobstructed piece movement succeeds", function()
 	local b = board:new {width = 5, depth = 3}
 
 	b:startPiece(piece.MINI_J, 3)
@@ -113,7 +131,7 @@ notion("piece movement works correctly", function()
 	]])
 end)
 
-notion("piece movement across edges works correctly", function()
+notion("pieces move completely across edges", function()
 	local b = board:new {width = 5, depth = 4}
 
 	-- Moving left across an edge
@@ -285,7 +303,7 @@ notion("piece movement blocked by collision", function()
 	]])
 end)
 
-notion("isSquareFilled works correctly", function()
+notion("isSquareFilled finds filled squares in bottom and wall from all sides", function()
 	local b = board:new {width = 5, depth = 3}
 
 	for _, t in ipairs({2, 7, 12, 17}) do
@@ -316,7 +334,7 @@ notion("isSquareFilled works correctly", function()
 	end
 end)
 
-notion("clearLines works correctly", function()
+notion("clearLines clears and shifts lines in bottom", function()
 	-- Basic clearing in Y
 	local b = boardFrom [[
 		   █▀▀▀▀▀█
@@ -377,5 +395,153 @@ notion("clearLines works correctly", function()
 	  █▄▄▄     ▄▄▄█
 	     █     █
 	     ▀▀▀▀▀▀▀
+	]])
+
+	-- Clearing and shifting in X
+	b = boardFrom [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█   ▄██▄▄   █
+		█   ▀▀▀██   █
+		█▄▄▄  ▀▀ ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]]
+	b:clearLines()
+	checkBoardGridIs(b, [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█           █
+		█    ▀▀▄▄   █
+		█▄▄▄  ▀▀ ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]])
+
+	b = boardFrom [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█   ▀██▀▀   █
+		█   ▄▄▄██   █
+		█▄▄▄ ▀▀▀ ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]]
+	b:clearLines()
+	checkBoardGridIs(b, [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█    ▄▄     █
+		█    ▄▄█▀   █
+		█▄▄▄     ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]])
+
+	-- Clearing and shifting in X and Y
+	b = boardFrom [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█   ▀██▀▀   █
+		█   ▄█▄██   █
+		█▄▄▄ ▀▀▀ ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]]
+	b:clearLines()
+	checkBoardGridIs(b, [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█     ▄     █
+		█     ▄█▀   █
+		█▄▄▄     ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]])
+end)
+
+notion("clearLines clears and shifts squares on walls", function()
+	-- Line through west, bottom, and east
+	local b = boardFrom [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█           █
+		█▀▀▀▀▀▀▀▀▀▀▀█
+		█▄▄▄     ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]]
+	b:clearLines()
+	checkBoardGridIs(b, [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█           █
+		█           █
+		█▄▄▄     ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]])
+
+	-- Line through north, bottom, and south
+	local b = boardFrom [[
+		   █▀▀█▀▀█
+		▄▄▄█  █  █▄▄▄
+		█     █     █
+		█     █     █
+		█▄▄▄  █  ▄▄▄█
+		   █  █  █
+		   ▀▀▀▀▀▀▀
+	]]
+	b:clearLines()
+	checkBoardGridIs(b, [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█           █
+		█           █
+		█▄▄▄     ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]])
+
+	-- Almost maximum fill
+	local b = boardFrom [[
+		   ██▀█▀██
+		▄▄▄█▄▀▄▀▄█▄▄▄
+		█▀▄▀██▄██▄▀▄█
+		█▀▄▀▄███▀▄▀▄█
+		██▄█▀█▀█▀▄█▄█
+		   █▀▄▀▄▀█
+		   ▀▀▀▀▀▀▀
+	]]
+	b:clearLines()
+	checkBoardGridIs(b, [[
+		   █▀▀▀▀▀█
+		▄▄▄█ ▀▀▀ █▄▄▄
+		█ ▄ ▄█▀█ ▄  █
+		█ ▀▄▀▄█▀▄▀▄ █
+		█▄▄▄ ▄▄▄ ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]])
+
+	-- Basic simultaneous pattern
+	local b = boardFrom [[
+		   ██▀▀▀██
+		▄▄▄██   ▄█▄▄▄
+		█▀ ▀  █  ▀▀▀█
+		█   ▀▀█▀▀   █
+		████▄ ▀ ▄█▄██
+		   █▄   ██
+		   ▀▀▀▀▀▀▀
+	]]
+	b:clearLines()
+	checkBoardGridIs(b, [[
+		   █▀▀▀▀▀█
+		▄▄▄█ █  ▀█▄▄▄
+		█ ▄ ▄▀  ▀▄▄▄█
+		█           █
+		█▄██▀▄  ▄█▄██
+		   █ ▄  ██
+		   ▀▀▀▀▀▀▀
 	]])
 end)

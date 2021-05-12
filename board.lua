@@ -209,8 +209,6 @@ function board:side(t)
 end
 
 function board:radialToGrid(t, r, side)
-	assert(r < 1, "radial coordinate not on bottom of board")
-
 	side = side or self:side(t)
 
 	local x, y
@@ -233,6 +231,33 @@ function board:radialToGrid(t, r, side)
 	end
 
 	return x, y
+end
+
+function board:gridToRadial(x, y)
+	local t, r
+	if x >= 1 and x <= self.width then
+		if y <= self.width then
+			-- North
+			t = x
+			r = 1 - y
+		else
+			-- South
+			t = self.width * 3 - x + 1
+			r = y - self.width
+		end
+	else
+		if x < 1 then
+			-- West
+			r = 1 - x
+			t = self.width * 4 - y + 1
+		else
+			-- East
+			r = x - self.width
+			t = y + self.width
+		end
+	end
+
+	return t, r
 end
 
 function board:remapPoint(t, r, targetSide)
@@ -313,6 +338,7 @@ end
 
 function board:clearLines()
 	local xMap = {}
+	local yMap = {}
 	local anyCleared = false
 
 	local xRightShift = 0
@@ -324,6 +350,9 @@ function board:clearLines()
 			xMap[x] = x + xRightShift
 		end
 	end
+	for x = -self.depth+1,0 do
+		xMap[x] = x + xRightShift
+	end
 
 	local xLeftShift = 0
 	for x = math.ceil(self.width/2)+1,self.width do
@@ -334,16 +363,71 @@ function board:clearLines()
 			xMap[x] = x - xLeftShift
 		end
 	end
+	for x = self.width+1,self.width+self.depth do
+		xMap[x] = x - xLeftShift
+	end
+
+	local yDownShift = 0
+	for y = math.ceil(self.width/2),1,-1 do
+		if self.lowerGrid:row(y):all() then
+			yDownShift = yDownShift + 1
+			anyCleared = true
+		else
+			yMap[y] = y + yDownShift
+		end
+	end
+	for y = -self.depth+1,0 do
+		yMap[y] = y + yDownShift
+	end
+
+	local yUpShift = 0
+	for y = math.ceil(self.width/2)+1,self.width do
+		if self.lowerGrid:row(y):all() then
+			yUpShift = yUpShift + 1
+			anyCleared = true
+		else
+			yMap[y] = y - yUpShift
+		end
+	end
+	for y = self.width+1,self.width+self.depth do
+		yMap[y] = y - yUpShift
+	end
+
+	if not anyCleared then
+		return
+	end
 
 	local oldLowerGrid = self.lowerGrid
+	local oldUpperGrid = self.upperGrid
 	self:clear()
 
 	for x = 1,self.width do
 		for y = 1,self.width do
 			local newX = xMap[x]
+			local newY = yMap[y]
 
-			if newX then
-				self.lowerGrid[newX][y] = oldLowerGrid[x][y]
+			if newX and newY then
+				self.lowerGrid[newX][newY] = oldLowerGrid[x][y]
+			end
+		end
+	end
+
+	for t = 1,self.circumf do
+		for r = 1,self.depth do
+			if oldUpperGrid[t][r] then
+				local x, y = self:radialToGrid(t, r)
+
+				local newX = xMap[x]
+				local newY = yMap[y]
+
+				if newX and newY then
+					if newX >= 1 and newX <= self.width and newY >= 1 and newY <= self.width then
+						self.lowerGrid[newX][newY] = true
+					else
+						local newT, newR = self:gridToRadial(newX, newY)
+						self.upperGrid[newT][newR] = true
+					end
+				end
 			end
 		end
 	end
