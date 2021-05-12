@@ -36,6 +36,7 @@ function board:init(o)
 	self.width = o.width
 	self.depth = o.depth
 	self.circumf = self.width * 4
+	self.rMin = -self.width + 1
 	self.generation = 1
 	self:clear()
 end
