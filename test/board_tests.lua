@@ -569,3 +569,47 @@ notion("clearLines clears and shifts squares on walls", function()
 		   ▀▀▀▀▀▀▀
 	]])
 end)
+
+notion("isSideBlocked detects squares anywhere in side", function()
+	local b = boardFrom [[
+		   █▀▀█▀▀█
+		▄▄▄█  █  █▄▄▄
+		█     █     █
+		█   ▀▀█▀▀   █
+		█▄▄▄  █  ▄▄▄█
+		   █  █  █
+		   ▀▀▀▀▀▀▀
+	]]
+	check(b:isSideBlocked(1)):is(true)
+	check(b:isSideBlocked(2)):is(false)
+	check(b:isSideBlocked(3)):is(true)
+	check(b:isSideBlocked(4)):is(false)
+
+	b = boardFrom [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█▀▀▀     ▀▀▀█
+		█           █
+		████     ████
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]]
+	check(b:isSideBlocked(1)):is(false)
+	check(b:isSideBlocked(2)):is(true)
+	check(b:isSideBlocked(3)):is(false)
+	check(b:isSideBlocked(4)):is(true)
+
+	b = boardFrom [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█           █
+		█▀       ▀  █
+		█▄▄▄     ▄▄▄█
+		   █  ▀  █
+		   ▀▀▀▀▀▀▀
+	]]
+	check(b:isSideBlocked(1)):is(false)
+	check(b:isSideBlocked(2)):is(true)
+	check(b:isSideBlocked(3)):is(true)
+	check(b:isSideBlocked(4)):is(true)
+end)

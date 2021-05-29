@@ -434,4 +434,16 @@ function board:clearLines()
 	end
 end
 
+function board:isSideBlocked(side)
+	for t = (side - 1) * self.width + 1, side * self.width do
+		for r = 1, self.depth do
+			if self.upperGrid[t][r] then
+				return true
+			end
+		end
+	end
+
+	return false
+end
+
 module("board")
