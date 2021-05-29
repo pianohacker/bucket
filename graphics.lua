@@ -4,6 +4,8 @@
 -- License, v. 2.0. If a copy of the MPL was not distributed with this
 -- file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+local common = require("common")
+
 graphics = {}
 
 function lerp2(a, b, t)
@@ -14,7 +16,8 @@ B_TOP_RADIUS = 0.4 -- Radius of outside of board as a proportion of the screen.
 B_TOP_CORNERNESS = 0.15 -- Amount that corners are drawn out.
 B_BOTTOM_RADIUS = 0.21 -- Radius of bottom of board as a proportion of the screen.
 B_START_ANGLE = -3/4 * math.pi -- The angle of t=1.
-B_GRID_COLOR = "#222222"
+B_GRID_COLOR = "#181818"
+B_BG_HIGHLIGHT_COLOR = "#111111"
 B_GRID_HIGHLIGHT_COLOR = "#888888"
 
 BoardRenderer = {}
@@ -125,6 +128,49 @@ function BoardRenderer:drawSquare(t, r)
 	self.graphics:lineTo(unpack(self:gridPoint(t, r-1, side)))
 end
 
+function BoardRenderer:updateBackgroundGraphics()
+	if self.board.pieceR - self.board.piece.height >= 0 then
+		local side = self.board:side(self.board.pieceT)
+
+		self.graphics:moveTo(unpack(self:gridPoint(side * self.board.width + 1, 0, side)))
+		self.graphics:lineTo(unpack(self:gridPoint((side - 1) * self.board.width + 1, 0, side)))
+
+		for t = (side - 1) * self.board.width + 1, side * self.board.width + 1 do
+			self.graphics:lineTo(unpack(self:gridPoint(t, self.board.depth, side)))
+		end
+	end
+
+	self.graphics:moveTo(unpack(self:bottomGridPoint(1, 1)))
+	self.graphics:lineTo(unpack(self:bottomGridPoint(self.board.width + 1, 1)))
+	self.graphics:lineTo(unpack(self:bottomGridPoint(self.board.width + 1, self.board.width + 1)))
+	self.graphics:lineTo(unpack(self:bottomGridPoint(1, self.board.width + 1)))
+
+	self.graphics:setFillColor(B_BG_HIGHLIGHT_COLOR)
+
+	self.graphics:fill()
+end
+
+function BoardRenderer:updateSquareGraphics()
+	for t = 1,self.board.circumf do
+		for r = 1,self.board.depth do
+			if self.board:isSquareFilled(t, r) then
+				self:drawSquare(t, r)
+			end
+		end
+	end
+
+	for t = 1,self.board.width do
+		for r = self.board.rMin,0 do
+			if self.board:isSquareFilled(t, r) then
+				self:drawSquare(t, r)
+			end
+		end
+	end
+
+	self.graphics:setFillColor("#ffffff88")
+	self.graphics:fill()
+end
+
 function BoardRenderer:updateSquareGraphics()
 	for t = 1,self.board.circumf do
 		for r = 1,self.board.depth do
@@ -204,6 +250,8 @@ function BoardRenderer:updateGraphics()
 	end
 
 	self.graphics = tove.newGraphics()
+
+	self:updateBackgroundGraphics()
 
 	self:updateSquareGraphics()
 
