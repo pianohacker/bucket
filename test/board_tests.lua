@@ -301,6 +301,30 @@ notion("piece movement blocked by collision", function()
 	     █     █
 	     ▀▀▀▀▀▀▀
 	]])
+
+	-- Unsuccessfully rotating at the bottom
+	local b = board:new {width = 5, depth = 3}
+	b:startPiece(piece.T, 16)
+	check(b:rotatePiece(-1)):is(true)
+	check(b:dropPiece()):is(true)
+	check(b:dropPiece()):is(true)
+	check(b:dropPiece()):is(true)
+	check(b:dropPiece()):is(true)
+	check(b:dropPiece()):is(true)
+	check(b:dropPiece()):is(true)
+	check(b:dropPiece()):is(false)
+	check(b:rotatePiece(-1)):is(false)
+	b:setPiece()
+
+	checkBoardGridIs(b, [[
+	     █▀▀▀▀▀█
+	  ▄▄▄█     █▄▄▄
+	  █           █
+	  █      ▄█   █
+	  █▄▄▄    ▀▄▄▄█
+	     █     █
+	     ▀▀▀▀▀▀▀
+	]])
 end)
 
 notion("isSquareFilled finds filled squares in bottom and wall from all sides", function()

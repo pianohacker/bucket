@@ -100,7 +100,7 @@ function board:pieceWouldCollide(pieceT, pieceR, piece)
 	local side = self:side(pieceT)
 
 	for t, r in self:iterPieceSquares(pieceT, pieceR, piece) do
-		if self:isGridSquareFilled(t, r) or self:side(t) ~= side then
+		if r < -self.depth - 1 or self:isGridSquareFilled(t, r) or self:side(t) ~= side then
 			return true
 		end
 	end

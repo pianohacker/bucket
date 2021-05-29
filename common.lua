@@ -127,7 +127,7 @@ end
 
 function checkedGridColumn:_checkCoords(y, op)
 	if self.x < 1 or self.x > self.g.width or y < 1 or y > self.g.height then
-		error(string.format("attempt to %s grid at out-of-bounds (%d, %d)", op, self.x, y))
+		error(string.format("attempt to %s grid at out-of-bounds (%d, %d)", op, self.x, y), 3)
 	end
 end
 
