@@ -8,39 +8,30 @@ cute = require "cute"
 lick = require "lick"
 tove = require "tove"
 
-lick.files = {"board.lua", "graphics.lua", "main.lua", "piece.lua"}
+lick.files = {"main.lua"}
 lick.reset = "true"
 lick.debug = "true"
 
-board = require "board"
-graphics = require "graphics"
-piece = require "piece"
+function lickRequire(module)
+	table.insert(lick.files, module:gsub('[.]', '/') .. ".lua")
 
-DROP_INTERVAL = .5
+	return require(module)
+end
 
-game = nil
-renderers = nil
+gameScreen = lickRequire "screens/game"
+
+screen = nil
 
 function love.load(args)
 	cute.go(args)
 
 	love.keyboard.setKeyRepeat(true)
 
-	game = {
-		dropCountup = DROP_INTERVAL,
-		board = board:new {
-			width = 8,
-			depth = 6
-		}
-	}
-
-	renderers = {
-		graphics.BoardRenderer:new(game.board)
-	}
+	screen = gameScreen:new()
 end
 
 function love.resize()
-	for _, renderer in ipairs(renderers) do
+	for _, renderer in ipairs(screen.renderers) do
 		renderer:resize()
 	end
 end
@@ -48,41 +39,15 @@ end
 function love.draw()
 	love.graphics.setColor(1, 1, 1)
 
-	for _, renderer in ipairs(renderers) do
+	for _, renderer in ipairs(screen.renderers) do
 		renderer:draw()
 	end
 end
 
-function dropPiece()
-	game.dropCountup = 0
-
-	if not game.board.piece then
-		game.board:startPiece(piece.random())
-	elseif not game.board:dropPiece() then
-		game.board:setPiece()
-		game.board:clearLines()
-		game.board:startPiece(piece.random())
-	end
-end
-
 function love.update(dt)
-	game.dropCountup = game.dropCountup + dt
-
-	if game.dropCountup >= DROP_INTERVAL then
-		dropPiece()
-	end
+	screen:update(dt)
 end
 
 function love.keypressed(key)
-	if key == 'l' then
-		game.board:shiftPiece(-1)
-	elseif key == 'a' then
-		game.board:shiftPiece(1)
-	elseif key == 'e' then
-		dropPiece()
-	elseif key == 'r' then
-		game.board:rotatePiece(-1)
-	elseif key == 's' then
-		game.board:rotatePiece(1)
-	end
+	screen:keypressed(key)
 end
