@@ -60,7 +60,7 @@ function board:startPiece(piece, t)
 	if not t then
 		repeat
 			t = love.math.random(1, self.circumf)
-		until self:side(t) == self:side(t + self.piece.width)
+		until self:side(t) == self:side(t + self.piece.width) and not self:isSideBlocked(self:side(t))
 	end
 
 	self.pieceT = t
@@ -136,8 +136,13 @@ function board:shiftPiece(delta)
 	if self:side(self.pieceT) ~= self:side(newTFar) then
 		if inBottom then
 			return false
-		else
-			newT = newT + delta * (self.piece.width - 1)
+		end
+
+		newT = newT + delta * (self.piece.width - 1)
+		newT, _ = self:normalizePoint(newT, 1)
+
+		while self:isSideBlocked(self:side(newT)) do
+			newT, _ = self:normalizePoint(newT + delta * self.width, 1)
 		end
 	end
 
@@ -145,7 +150,7 @@ function board:shiftPiece(delta)
 		return false
 	end
 
-	self.pieceT, _ = self:normalizePoint(newT, 1)
+	self.pieceT, _ = newT, 1
 
 	return true
 end

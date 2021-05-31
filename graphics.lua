@@ -18,6 +18,7 @@ B_BOTTOM_RADIUS = 0.21 -- Radius of bottom of board as a proportion of the scree
 B_START_ANGLE = -3/4 * math.pi -- The angle of t=1.
 B_GRID_COLOR = "#181818"
 B_BG_HIGHLIGHT_COLOR = "#111111"
+B_BG_BLOCKED_COLOR = "#331111"
 B_GRID_HIGHLIGHT_COLOR = "#888888"
 
 BoardRenderer = {}
@@ -48,8 +49,8 @@ function BoardRenderer:updateGrid()
 	local b_cornerness = top_radius * B_TOP_CORNERNESS
 	local step = 2 * math.pi / self.board.circumf
 	for t=1,self.board.circumf do
-		angle = (t - 1) * step + B_START_ANGLE
-		cornerness = (math.abs(math.sin((t - 1) * math.pi / self.board.width))) * b_cornerness
+		local angle = (t - 1) * step + B_START_ANGLE
+		local cornerness = (math.abs(math.sin((t - 1) * math.pi / self.board.width))) * b_cornerness
 		table.insert(
 			self.b_top,
 			{
@@ -128,16 +129,18 @@ function BoardRenderer:drawSquare(t, r)
 	self.graphics:lineTo(unpack(self:gridPoint(t, r-1, side)))
 end
 
+function BoardRenderer:drawSide(side)
+	self.graphics:moveTo(unpack(self:gridPoint(side * self.board.width + 1, 0, side)))
+	self.graphics:lineTo(unpack(self:gridPoint((side - 1) * self.board.width + 1, 0, side)))
+
+	for t = (side - 1) * self.board.width + 1, side * self.board.width + 1 do
+		self.graphics:lineTo(unpack(self:gridPoint(t, self.board.depth, side)))
+	end
+end
+
 function BoardRenderer:updateBackgroundGraphics()
 	if self.board.pieceR - self.board.piece.height >= 0 then
-		local side = self.board:side(self.board.pieceT)
-
-		self.graphics:moveTo(unpack(self:gridPoint(side * self.board.width + 1, 0, side)))
-		self.graphics:lineTo(unpack(self:gridPoint((side - 1) * self.board.width + 1, 0, side)))
-
-		for t = (side - 1) * self.board.width + 1, side * self.board.width + 1 do
-			self.graphics:lineTo(unpack(self:gridPoint(t, self.board.depth, side)))
-		end
+		self:drawSide(self.board:side(self.board.pieceT))
 	end
 
 	self.graphics:moveTo(unpack(self:bottomGridPoint(1, 1)))
@@ -148,6 +151,14 @@ function BoardRenderer:updateBackgroundGraphics()
 	self.graphics:setFillColor(B_BG_HIGHLIGHT_COLOR)
 
 	self.graphics:fill()
+
+	self.graphics:setFillColor(B_BG_BLOCKED_COLOR)
+	for side = 1,4 do
+		if self.board:isSideBlocked(side) then
+			self:drawSide(side)
+			self.graphics:fill()
+		end
+	end
 end
 
 function BoardRenderer:updateSquareGraphics()
@@ -252,9 +263,7 @@ function BoardRenderer:updateGraphics()
 	self.graphics = tove.newGraphics()
 
 	self:updateBackgroundGraphics()
-
 	self:updateSquareGraphics()
-
 	self:updateGridGraphics()
 
 	self.lastDrawnGeneration = self.board.generation

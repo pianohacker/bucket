@@ -165,35 +165,16 @@ notion("pieces move completely across edges", function()
 	]])
 
 	-- Moving left across an edge after rotation
-	b:startPiece(piece.I, 7)
+	b:startPiece(piece.I, 12)
 	b:rotatePiece(1)
 	b:shiftPiece(-1)
 	b:setPiece()
 	checkBoardGridIs(b, [[
 		    ██▀▀▀▀█
-		    ██▀▀▀▀█
+		    ██    █
 		█████▀    ▀▀▀▀█
-		█             █
-		█             █
-		▀▀▀▀█     █▀▀▀▀
-		    █     █
-		    ▀▀▀▀▀▀▀
-	]])
-
-	b:startPiece(piece.I, 6)
-	check(b:dropPiece()):is(true)
-	check(b:dropPiece()):is(true)
-	check(b:dropPiece()):is(true)
-	check(b:dropPiece()):is(true)
-	check(b:dropPiece()):is(true)
-	check(b:dropPiece()):is(false)
-	b:setPiece()
-	checkBoardGridIs(b, [[
-		    ██▀▀▀▀█
-		    ██▀▀▀▀█
-		██████▄▄▄ ▀▀▀▀█
-		█             █
-		█             █
+		█           █ █
+		█           █ █
 		▀▀▀▀█     █▀▀▀▀
 		    █     █
 		    ▀▀▀▀▀▀▀
@@ -612,4 +593,134 @@ notion("isSideBlocked detects squares anywhere in side", function()
 	check(b:isSideBlocked(2)):is(true)
 	check(b:isSideBlocked(3)):is(true)
 	check(b:isSideBlocked(4)):is(true)
+end)
+
+notion("pieces skip blocked sides during movement", function()
+	local b = boardFrom [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█           █
+		█  ▀     ▀  █
+		█▄▄▄     ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]]
+
+	-- Shifting pieces clockwise
+	b:startPiece(piece.O, 4)
+	b:shiftPiece(1)
+	b:setPiece()
+	checkBoardGridIs(b, [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█           █
+		█  ▀     ▀  █
+		█▄▄▄     ▄▄▄█
+		   █   ███
+		   ▀▀▀▀▀▀▀
+	]])
+
+	-- Shifting pieces counterclockwise
+	b = boardFrom [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█           █
+		█  ▀     ▀  █
+		█▄▄▄     ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]]
+	b:startPiece(piece.O, 1)
+	b:shiftPiece(-1)
+	b:setPiece()
+	checkBoardGridIs(b, [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█           █
+		█  ▀     ▀  █
+		█▄▄▄     ▄▄▄█
+		   ███   █
+		   ▀▀▀▀▀▀▀
+	]])
+
+	-- Shifting pieces clockwise through two blocked sides
+	b = boardFrom [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█           █
+		█        ▀  █
+		█▄▄▄  ▄  ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]]
+	b:startPiece(piece.O, 4)
+	b:shiftPiece(1)
+	b:setPiece()
+	checkBoardGridIs(b, [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█           █
+		█▄▄      ▀  █
+		███▄  ▄  ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]])
+
+	-- Shifting pieces counterclockwise through two blocked sides
+	b = boardFrom [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█           █
+		█        ▀  █
+		█▄▄▄  ▄  ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]]
+	b:startPiece(piece.O, 16)
+	b:shiftPiece(-1)
+	b:setPiece()
+	checkBoardGridIs(b, [[
+		   █▀▀▀███
+		▄▄▄█   ▀▀█▄▄▄
+		█           █
+		█        ▀  █
+		█▄▄▄  ▄  ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]])
+end)
+
+notion("pieces never start on blocked sides", function()
+	local b = boardFrom [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█           █
+		█  ▀     ▀  █
+		█▄▄▄     ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]]
+
+	local oldrandom = love.math.random
+	local randomOffset = 1
+	local randomValues = {6, 18, 3}
+	love.math.random = function()
+		local val = randomValues[randomOffset]
+		randomOffset = (randomOffset % #randomValues) + 1
+		return val
+	end
+
+	b:startPiece(piece.T)
+	b:setPiece()
+	checkBoardGridIs(b, [[
+		   █▀▀█▀▀█
+		▄▄▄█  █▀ █▄▄▄
+		█           █
+		█  ▀     ▀  █
+		█▄▄▄     ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]])
+
+	love.math.random = oldrandom
 end)
