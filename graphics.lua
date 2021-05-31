@@ -7,6 +7,7 @@
 module("graphics", package.seeall)
 
 local common = require("common")
+local tove = require("tove")
 
 local function lerp2(a, b, t)
 	return b[1] * t + a[1] * (1-t), b[2] * t + a[2] * (1-t)
@@ -160,27 +161,6 @@ function BoardRenderer:updateBackgroundGraphics()
 			self.graphics:fill()
 		end
 	end
-end
-
-function BoardRenderer:updateSquareGraphics()
-	for t = 1,self.board.circumf do
-		for r = 1,self.board.depth do
-			if self.board:isSquareFilled(t, r) then
-				self:drawSquare(t, r)
-			end
-		end
-	end
-
-	for t = 1,self.board.width do
-		for r = self.board.rMin,0 do
-			if self.board:isSquareFilled(t, r) then
-				self:drawSquare(t, r)
-			end
-		end
-	end
-
-	self.graphics:setFillColor("#ffffff88")
-	self.graphics:fill()
 end
 
 function BoardRenderer:updateSquareGraphics()

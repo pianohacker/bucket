@@ -7,3 +7,6 @@
 [submodule "inspect.lua"]
 	path = inspect
 	url = https://github.com/kikito/inspect.lua
+[submodule "profile"]
+	path = profile
+	url = https://bitbucket.org/itraykov/profile.lua.git

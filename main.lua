@@ -4,9 +4,8 @@
 -- License, v. 2.0. If a copy of the MPL was not distributed with this
 -- file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-cute = require "cute"
-lick = require "lick"
-tove = require "tove"
+local cute = require "cute"
+local lick = require "lick"
 
 lick.files = {"main.lua"}
 lick.reset = "true"
@@ -21,6 +20,11 @@ end
 local startScreen = lickRequire "screens/start"
 
 screen = nil
+profilerState = {
+	enabled = (os.getenv("BUCKET_PROFILE") and true or false),
+	frame = 0,
+	reportEvery = 240,
+}
 
 core = {}
 
@@ -30,6 +34,13 @@ end
 
 function love.load(args)
 	cute.go(args)
+
+	if profilerState.enabled then
+		jit.off()
+		profilerState.profiler = require("profile.profile")
+		profilerState.profiler.start()
+		profilerState.frame = 0
+	end
 
 	love.keyboard.setKeyRepeat(true)
 
@@ -52,6 +63,16 @@ end
 
 function love.update(dt)
 	screen:update(dt)
+
+	if profilerState.enabled then
+		profilerState.frame = profilerState.frame + 1
+		
+		if profilerState.frame == profilerState.reportEvery then
+			profilerState.frame = 0
+			print(profilerState.profiler.report())
+			profilerState.profiler.report()
+		end
+	end
 end
 
 function love.keypressed(key)
