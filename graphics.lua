@@ -97,7 +97,7 @@ function BoardRenderer:gridPoint(t, r, side)
 
 	-- Coordinates on the sides of the bucket are easy.
 	if r > 0 then
-		t, r = self.board:normalizePoint(t, r)
+		t = self.board:normalizeT(t)
 		return {lerp2(self.b_bottom[t], self.b_top[t], r/self.board.depth)}
 	end
 

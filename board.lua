@@ -83,10 +83,9 @@ function board:iterPieceSquares(pieceT, pieceR, piece)
 			end
 
 			if r <= #piece[1] and piece[t][r] then
-				return self:normalizePoint(
-					pieceT - piece.xOffset + t - 1,
-					pieceR - r + 1
-				)
+				return self:normalizeT(
+					pieceT - piece.xOffset + t - 1
+				), pieceR - r + 1
 			end
 		end
 
@@ -139,10 +138,10 @@ function board:shiftPiece(delta)
 		end
 
 		newT = newT + delta * (self.piece.width - 1)
-		newT, _ = self:normalizePoint(newT, 1)
+		newT = self:normalizeT(newT)
 
 		while self:isSideBlocked(self:side(newT)) do
-			newT, _ = self:normalizePoint(newT + delta * self.width, 1)
+			newT = self:normalizeT(newT + delta * self.width)
 		end
 	end
 
@@ -180,7 +179,7 @@ function board:rotatePiece(direction)
 
 	for offset = 0,math.floor(piece.width / 2) do
 		for offsetDirection = -1,1,2 do
-			local newTCandidate, _ = self:normalizePoint(newTBase + offset * offsetDirection, 1)
+			local newTCandidate = self:normalizeT(newTBase + offset * offsetDirection)
 
 			if not self:pieceWouldCollide(newTCandidate, self.pieceR, piece) then
 				newT = newTCandidate
@@ -203,13 +202,12 @@ function board:rotatePiece(direction)
 	return true
 end
 
-function board:normalizePoint(t, r)
-	t = (t - 1) % self.circumf + 1
-	return t, r
+function board:normalizeT(t)
+	return (t - 1) % self.circumf + 1
 end
 
 function board:side(t)
-	t, _ = self:normalizePoint(t, 1)
+	t = self:normalizeT(t)
 
 	return math.floor((t - 1) / self.width) + 1
 end
@@ -299,7 +297,7 @@ function board:remapPoint(t, r, targetSide)
 end
 
 function board:isSquareFilled(t, r)
-	t, r = self:normalizePoint(t, r)
+	t = self:normalizeT(t)
 
 	if self.piece then
 		local transT, transR = self:remapPoint(t, r, self:side(self.pieceT))
@@ -319,7 +317,7 @@ function board:isSquareFilled(t, r)
 end
 
 function board:isGridSquareFilled(t, r)
-	t, r = self:normalizePoint(t, r)
+	t = self:normalizeT(t)
 
 	if r > 0 then
 		return self.upperGrid[t][r]
@@ -331,7 +329,7 @@ function board:isGridSquareFilled(t, r)
 end
 
 function board:fillGridSquare(t, r)
-	t, r = self:normalizePoint(t, r)
+	t = self:normalizeT(t)
 
 	if r > 0 then
 		self.upperGrid[t][r] = true
