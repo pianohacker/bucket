@@ -4,31 +4,33 @@
 -- License, v. 2.0. If a copy of the MPL was not distributed with this
 -- file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+module("graphics", package.seeall)
+
 local common = require("common")
 
-graphics = {}
-
-function lerp2(a, b, t)
+local function lerp2(a, b, t)
 	return b[1] * t + a[1] * (1-t), b[2] * t + a[2] * (1-t)
 end
 
-B_TOP_RADIUS = 0.4 -- Radius of outside of board as a proportion of the screen.
-B_TOP_CORNERNESS = 0.15 -- Amount that corners are drawn out.
-B_BOTTOM_RADIUS = 0.21 -- Radius of bottom of board as a proportion of the screen.
-B_START_ANGLE = -3/4 * math.pi -- The angle of t=1.
-B_GRID_COLOR = "#181818"
-B_BG_HIGHLIGHT_COLOR = "#111111"
-B_BG_BLOCKED_COLOR = "#331111"
-B_GRID_HIGHLIGHT_COLOR = "#888888"
+local function getCenterAndSize()
+	local SWIDTH, SHEIGHT = love.graphics.getDimensions()
+	return SWIDTH/2, SHEIGHT/2, math.min(SWIDTH, SHEIGHT)
+end
 
-BoardRenderer = {}
-BoardRenderer.__index = BoardRenderer
-graphics.BoardRenderer = BoardRenderer
+local B_TOP_RADIUS = 0.4 -- Radius of outside of board as a proportion of the screen.
+local B_TOP_CORNERNESS = 0.15 -- Amount that corners are drawn out.
+local B_BOTTOM_RADIUS = 0.21 -- Radius of bottom of board as a proportion of the screen.
+local B_START_ANGLE = -3/4 * math.pi -- The angle of t=1.
+local B_GRID_COLOR = "#181818"
+local B_BG_HIGHLIGHT_COLOR = "#111111"
+local B_BG_BLOCKED_COLOR = "#331111"
+local B_GRID_HIGHLIGHT_COLOR = "#888888"
 
-function BoardRenderer:new(board) 
-	local o = { board = board, lastDrawnGeneration = 0 }
-	setmetatable(o, self)
-	return o
+BoardRenderer = common.object:new()
+
+function BoardRenderer:init(board) 
+	self.board = board
+	self.lastDrawnGeneration = 0
 end
 
 function BoardRenderer:resize()
@@ -39,13 +41,12 @@ function BoardRenderer:updateGrid()
 	self.graphics = nil
 
 	-- Scale to window
-	local SWIDTH, SHEIGHT = love.graphics.getDimensions()
-	local SSMALLEST = math.min(SWIDTH, SHEIGHT)
-	self.center_x, self.center_y = SWIDTH/2, SHEIGHT/2
+	local size
+	self.center_x, self.center_y, size = getCenterAndSize()
 
 	-- Calculate top of board
 	self.b_top = {}
-	local top_radius = SSMALLEST * (B_TOP_RADIUS + B_TOP_CORNERNESS)
+	local top_radius = size * (B_TOP_RADIUS + B_TOP_CORNERNESS)
 	local b_cornerness = top_radius * B_TOP_CORNERNESS
 	local step = 2 * math.pi / self.board.circumf
 	for t=1,self.board.circumf do
@@ -62,7 +63,7 @@ function BoardRenderer:updateGrid()
 
 	-- Calculate bottom of board
 	self.b_bottom = {}
-	self.bottom_radius = SSMALLEST * B_BOTTOM_RADIUS
+	self.bottom_radius = size * B_BOTTOM_RADIUS
 
 	-- North
 	for x = 1,self.board.width do
@@ -277,4 +278,37 @@ function BoardRenderer:draw()
 	self.graphics:draw()
 end
 
-module("graphics")
+StartRenderer = common.object:new()
+
+function StartRenderer:init()
+	self:resize()
+end
+
+function StartRenderer:resize()
+	local cx, cy, size = getCenterAndSize()
+
+	self.headerFont = love.graphics.newFont("fonts/AlegreyaSansSC-Light.ttf", size * .1)
+	self.startFont = love.graphics.newFont("fonts/AlegreyaSansSC-Light.ttf", size * .05)
+end
+
+function StartRenderer:draw()
+	local cx, cy, size = getCenterAndSize()
+
+	love.graphics.printf(
+		"Bucket",
+		self.headerFont,
+		cx - size/2,
+		cy - size * .2,
+		size,
+		"center"
+	)
+
+	love.graphics.printf(
+		"Press Enter or Space to start",
+		self.startFont,
+		cx - size/2,
+		cy + size * .1,
+		size,
+		"center"
+	)
+end

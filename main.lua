@@ -18,16 +18,22 @@ function lickRequire(module)
 	return require(module)
 end
 
-gameScreen = lickRequire "screens/game"
+local startScreen = lickRequire "screens/start"
 
 screen = nil
+
+core = {}
+
+function core.switchScreen(newScreen)
+	screen = newScreen:new()
+end
 
 function love.load(args)
 	cute.go(args)
 
 	love.keyboard.setKeyRepeat(true)
 
-	screen = gameScreen:new()
+	screen = startScreen:new()
 end
 
 function love.resize()
