@@ -95,6 +95,43 @@ function board:iterPieceSquares(pieceT, pieceR, piece)
 	return iter, nil, nil
 end
 
+function board:iterOccupiedSquares()
+	local t = 0
+	local r = self.depth
+	local x = 0
+	local y = 1
+
+	local function iter()
+		while r >= 1 do
+			t = t + 1
+			if t > self.width * 4 then
+				t = 1
+				r = r - 1
+			end
+
+			if r >= 1 and self.upperGrid[t][r] then
+				return t, r
+			end
+		end
+
+		while y <= self.width do
+			x = x + 1
+			if x > self.width then
+				x = 1
+				y = y + 1
+			end
+
+			if y <= self.width and self.lowerGrid[x][y] then
+				return self:gridToRadial(x, y)
+			end
+		end
+
+		return nil, nil
+	end
+
+	return iter, nil, nil
+end
+
 function board:pieceWouldCollide(pieceT, pieceR, piece)
 	local side = self:side(pieceT)
 
@@ -294,26 +331,6 @@ function board:remapPoint(t, r, targetSide)
 	end
 
 	return t, r
-end
-
-function board:isSquareFilled(t, r)
-	t = self:normalizeT(t)
-
-	if self.piece then
-		local transT, transR = self:remapPoint(t, r, self:side(self.pieceT))
-		transT = transT + self.piece.xOffset
-
-		if (
-			(transT >= self.pieceT and transT < self.pieceT + #self.piece) and
-			(transR > self.pieceR - #self.piece[1] and transR <= self.pieceR)
-		) then
-			if self.piece[transT - self.pieceT + 1][1 + (self.pieceR - transR)] then
-				return true
-			end
-		end
-	end
-
-	return self:isGridSquareFilled(t, r)
 end
 
 function board:isGridSquareFilled(t, r)

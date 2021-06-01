@@ -4,12 +4,12 @@
 -- License, v. 2.0. If a copy of the MPL was not distributed with this
 -- file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-board = lickRequire "board"
-common = lickRequire "common"
-graphics = lickRequire "graphics"
-piece = lickRequire "piece"
+local board = lickRequire "board"
+local common = lickRequire "common"
+local graphics = lickRequire "graphics"
+local piece = lickRequire "piece"
 
-DROP_INTERVAL = .5
+local DROP_INTERVAL = .5
 
 local gameScreen = common.object:new()
 
@@ -17,7 +17,7 @@ function gameScreen:init()
 	self.dropCountup = DROP_INTERVAL
 	self.board = board:new {
 		width = 8,
-		depth = 6
+		depth = 30
 	}
 
 	self.renderers = {

@@ -10,3 +10,6 @@
 [submodule "profile"]
 	path = profile
 	url = https://bitbucket.org/itraykov/profile.lua.git
+[submodule "luaunit"]
+	path = luaunit
+	url = https://github.com/bluebird75/luaunit

@@ -21,6 +21,7 @@ local startScreen = lickRequire "screens/start"
 
 screen = nil
 profilerState = {
+	fpsEnabled = (os.getenv("BUCKET_SHOW_FPS") and true or false),
 	enabled = (os.getenv("BUCKET_PROFILE") and true or false),
 	frame = 0,
 	reportEvery = 240,
@@ -55,6 +56,7 @@ end
 
 function love.draw()
 	love.graphics.setColor(1, 1, 1)
+	love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10)
 
 	for _, renderer in ipairs(screen.renderers) do
 		renderer:draw()

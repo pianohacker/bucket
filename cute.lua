@@ -76,7 +76,7 @@ local addTests = function (files)
   for i, f in ipairs(files) do
     if stringEnds(f, "_tests.lua") then
       local chunk = love.filesystem.load(f)
-	  currentFile = f
+    currentFile = f
       chunk()
     end
   end
@@ -266,7 +266,7 @@ end
 
 notion = function (title, testMethod)
   table.insert(tests, {
-	file=currentFile,
+  file=currentFile,
     title=title,
     run=testMethod
   })
@@ -274,7 +274,7 @@ end
 
 f_notion = function (title, testMethod)
   table.insert(focusTests, {
-	file=currentFile,
+  file=currentFile,
     title=title,
     run=testMethod,
     focused=true
@@ -368,6 +368,45 @@ function checker:shallowMatches(refTable)
   return true
 end
 
+function checker:tableMatchesUnordered(refTable)
+  local refTableOccurrences = {}
+  local testTableOccurrences = {}
+  local unionOfVals = {}
+
+  for _, x in ipairs(self.testVals[1]) do
+    testTableOccurrences[x] = (testTableOccurrences[x] or 0) + 1
+    unionOfVals[x] = 1
+  end
+
+  for _, x in ipairs(refTable) do
+    refTableOccurrences[x] = (refTableOccurrences[x] or 0) + 1
+    unionOfVals[x] = 1
+  end
+
+  local mismatches = {}
+
+  for val, _ in pairs(unionOfVals) do
+    refOccurrences = refTableOccurrences[val] or 0
+    testOccurrences = testTableOccurrences[val] or 0
+    
+    if refOccurrences ~= testOccurrences then
+      table.insert(
+        mismatches,
+        string.format(
+          "%s occurs %d times, expected %d",
+          repr(val),
+          testOccurrences,
+          refOccurrences
+        )
+      )
+    end
+  end
+
+  if #mismatches ~= 0 then
+    error("Mismatch: " + table.concat(mismatches, ", "), 2 + self._errorOffset)
+  end
+end
+
 function checker:patternMatches(pattern)
   if not string.match(self.testVals[1], pattern) then
     error(string.format("%s did not match pattern %s", repr(self.testVals[1]), repr(pattern)), 2 + self._errorOffset)
@@ -386,6 +425,24 @@ end
 
 check = function (...)
   return checker:new({...})
+end
+
+checkIter = function(f, s, var)
+  local testVal = {}
+  local vals = {var}
+
+  while true do
+    vals = {f(s, vals[1])}
+    if vals[1] == nil then break end
+
+    if #vals > 1 then
+      table.insert(testVal, vals)
+    else
+      table.insert(testVal, vals[1])
+    end
+  end
+
+  return check(testVal)
 end
 
 -- options and running

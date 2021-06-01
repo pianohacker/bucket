@@ -6,6 +6,7 @@
 
 local cute = require("cute")
 local inspect = require("inspect")
+local lu = require("luaunit.luaunit")
 
 local board = require("board")
 local piece = require("piece")
@@ -308,29 +309,18 @@ notion("piece movement blocked by collision", function()
 	]])
 end)
 
-notion("isSquareFilled finds filled squares in bottom and wall from all sides", function()
+notion("isGridSquareFilled finds filled squares in bottom and wall from all sides", function()
 	local b = board:new {width = 5, depth = 3}
 
 	for _, t in ipairs({2, 7, 12, 17}) do
 		b:startPiece(piece.S, t)
 		b:dropPiece()
-
-		check(
-			b:isSquareFilled(t, 2), b:isSquareFilled(t + 1, 2),
-			b:isSquareFilled(t, 1), b:isSquareFilled(t + 1, 1),
-			b:isSquareFilled(t, 0), b:isSquareFilled(t + 1, 0)
-		):is(
-			true, false,
-			true, true,
-			false, true
-		)
-
 		b:setPiece()
 
 		check(
-			b:isSquareFilled(t, 2), b:isSquareFilled(t + 1, 2),
-			b:isSquareFilled(t, 1), b:isSquareFilled(t + 1, 1),
-			b:isSquareFilled(t, 0), b:isSquareFilled(t + 1, 0)
+			b:isGridSquareFilled(t, 2), b:isGridSquareFilled(t + 1, 2),
+			b:isGridSquareFilled(t, 1), b:isGridSquareFilled(t + 1, 1),
+			b:isGridSquareFilled(t, 0), b:isGridSquareFilled(t + 1, 0)
 		):is(
 			true, false,
 			true, true,
@@ -723,4 +713,68 @@ notion("pieces never start on blocked sides", function()
 	]])
 
 	love.math.random = oldrandom
+end)
+
+local function collectIter(f, s, var)
+	local testVal = {}
+	local vals = {var}
+
+	while true do
+		vals = {f(s, vals[1])}
+		if vals[1] == nil then break end
+
+		if #vals > 1 then
+			table.insert(testVal, vals)
+		else
+			table.insert(testVal, vals[1])
+		end
+	end
+
+	return testVal
+end
+
+notion("iterPieceSquares returns exactly the squares occupied by a piece", function()
+	local b = board:new({ width = 5, depth = 3})
+
+	b:startPiece(piece.T, 3)
+	lu.assertItemsEquals(collectIter(b:iterPieceSquares()), {{3, 3}, {3, 2}, {4, 2}, {3, 1}})
+
+	b:dropPiece()
+	b:rotatePiece()
+	lu.assertItemsEquals(collectIter(b:iterPieceSquares()), {{2, 1}, {3, 1}, {4, 1}, {3, 0}})
+end)
+
+notion("iterOccupiedSquares returns exactly the squares already occupied", function()
+	local b = boardFrom [[
+		   █▀▀▀█▀█
+		▄▄▄█  ▀▀ █▄▄▄
+		██  ▄    ▄  █
+		█  ▀█   █▀  █
+		█▄▄▄ █   ▄▄▄█
+		   █  ▀▀ █
+		   ▀▀▀▀▀▀▀
+	]]
+
+	lu.assertItemsEquals(
+		collectIter(b:iterOccupiedSquares()),
+		{
+			{1, -1},
+			{1, -2},
+			{1, -3},
+			{2, -4},
+			{3, 2},
+			{4, 3},
+			{4, 2},
+			{5, -2},
+			{5, -3},
+			{7, 1},
+			{8, 1},
+			{12, 2},
+			{13, 2},
+			{14, 1},
+			{18, 1},
+			{19, 3},
+			{20, 3},
+		}
+	)
 end)

@@ -164,20 +164,12 @@ function BoardRenderer:updateBackgroundGraphics()
 end
 
 function BoardRenderer:updateSquareGraphics()
-	for t = 1,self.board.circumf do
-		for r = 1,self.board.depth do
-			if self.board:isSquareFilled(t, r) then
-				self:drawSquare(t, r)
-			end
-		end
+	for t, r in self.board:iterPieceSquares() do
+		self:drawSquare(t, r)
 	end
 
-	for t = 1,self.board.width do
-		for r = self.board.rMin,0 do
-			if self.board:isSquareFilled(t, r) then
-				self:drawSquare(t, r)
-			end
-		end
+	for t, r in self.board:iterOccupiedSquares() do
+		self:drawSquare(t, r)
 	end
 
 	self.graphics:setFillColor("#ffffff88")
