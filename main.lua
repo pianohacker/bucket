@@ -56,7 +56,9 @@ end
 
 function love.draw()
 	love.graphics.setColor(1, 1, 1)
-	love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10)
+	if profilerState.fpsEnabled then
+		love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10)
+	end
 
 	for _, renderer in ipairs(screen.renderers) do
 		renderer:draw()

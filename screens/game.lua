@@ -17,7 +17,7 @@ function gameScreen:init()
 	self.dropCountup = DROP_INTERVAL
 	self.board = board:new {
 		width = 8,
-		depth = 30
+		depth = 6
 	}
 
 	self.renderers = {

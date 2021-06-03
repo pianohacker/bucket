@@ -37,7 +37,8 @@ function board:init(o)
 	self.depth = o.depth
 	self.circumf = self.width * 4
 	self.rMin = -self.width + 1
-	self.generation = 1
+	self.gridGeneration = 1
+	self.pieceGeneration = 1
 	self:clear()
 end
 
@@ -47,12 +48,16 @@ function board:clear()
 	self.piece = nil
 end
 
-function board:markChanged()
-	self.generation = self.generation + 1
+function board:markGridChanged()
+	self.gridGeneration = self.gridGeneration + 1
+end
+
+function board:markPieceChanged()
+	self.pieceGeneration = self.pieceGeneration + 1
 end
 
 function board:startPiece(piece, t)
-	self:markChanged()
+	self:markPieceChanged()
 
 	self.piece = piece
 	self.pieceR = self.depth + (piece.top - 1)
@@ -150,7 +155,7 @@ function board:dropPiece()
 	if newR - self.piece.height < -self.width or self:pieceWouldCollide(self.pieceT, newR) then
 		return false
 	else
-		self:markChanged()
+		self:markPieceChanged()
 
 		self.pieceR = newR
 		return true
@@ -158,7 +163,7 @@ function board:dropPiece()
 end
 
 function board:shiftPiece(delta)
-	self:markChanged()
+	self:markPieceChanged()
 
 	local inBottom = self.pieceR - self.piece.height < 0
 	local newT = self.pieceT + delta
@@ -192,7 +197,8 @@ function board:shiftPiece(delta)
 end
 
 function board:setPiece()
-	self:markChanged()
+	self:markGridChanged()
+	self:markPieceChanged()
 
 	for t, r in self:iterPieceSquares() do
 		self:fillGridSquare(t, r)
@@ -202,7 +208,7 @@ function board:setPiece()
 end
 
 function board:rotatePiece(direction)
-	self:markChanged()
+	self:markPieceChanged()
 
 	local piece
 	if direction == -1 then
@@ -358,6 +364,8 @@ function board:fillGridSquare(t, r)
 end
 
 function board:clearLines()
+	self:markGridChanged()
+
 	local xMap = {}
 	local yMap = {}
 	local anyCleared = false
