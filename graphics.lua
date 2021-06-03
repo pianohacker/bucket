@@ -154,6 +154,7 @@ end
 
 function BoardRenderer:updateBackgroundGraphics()
 	self.backgroundGraphics = tove.newGraphics()
+	self.backgroundGraphics:setDisplay('mesh')
 
 	if self.board.pieceR - self.board.piece.height >= 0 then
 		self:drawSide(self.board:side(self.board.pieceT))
@@ -248,6 +249,7 @@ end
 
 function BoardRenderer:updateGridGraphics()
 	self.gridGraphics = tove.newGraphics()
+	self.gridGraphics:setDisplay('mesh')
 
 	self:updateSquareGraphics()
 	self:updateGridLineGraphics()
@@ -255,6 +257,7 @@ end
 
 function BoardRenderer:updatePieceGraphics()
 	self.pieceGraphics = tove.newGraphics()
+	self.pieceGraphics:setDisplay('mesh')
 
 	for t, r in self.board:iterPieceSquares() do
 		self:drawSquare(t, r, self.pieceGraphics)
