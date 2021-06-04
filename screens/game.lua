@@ -9,9 +9,12 @@ local common = lickRequire "common"
 local graphics = lickRequire "graphics"
 local piece = lickRequire "piece"
 
+local baseScreen = lickRequire "screens/base"
+local lossScreen = lickRequire "screens/loss"
+
 local DROP_INTERVAL = .5
 
-local gameScreen = common.object:new()
+local gameScreen = baseScreen:new()
 
 function gameScreen:init()
 	self.dropInterval = common.interval:new(DROP_INTERVAL)
@@ -25,7 +28,6 @@ function gameScreen:init()
 
 	self.renderers = {
 		graphics.BoardRenderer:new(self.board),
-		-- graphics.LossOverlayRenderer:new(function() return self.lost end),
 	}
 end
 
@@ -35,6 +37,19 @@ function gameScreen:dropPiece()
 	elseif not self.board:dropPiece() then
 		self.board:setPiece()
 		self.board:clearLines()
+
+		local allBlocked = true
+		for side = 1, 4 do
+			if not self.board:isSideBlocked(side) then
+				allBlocked = false
+			end
+		end
+
+		if allBlocked then
+			core.switchScreen(lossScreen:new(self))
+			return
+		end
+
 		self.board:startPiece(piece.random())
 	end
 end

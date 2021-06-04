@@ -30,7 +30,7 @@ profilerState = {
 core = {}
 
 function core.switchScreen(newScreen)
-	screen = newScreen:new()
+	screen = newScreen
 end
 
 function love.load(args)
@@ -49,9 +49,7 @@ function love.load(args)
 end
 
 function love.resize()
-	for _, renderer in ipairs(screen.renderers) do
-		renderer:resize()
-	end
+	screen:resize()
 end
 
 function love.draw()
@@ -60,9 +58,7 @@ function love.draw()
 		love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10)
 	end
 
-	for _, renderer in ipairs(screen.renderers) do
-		renderer:draw()
-	end
+	screen:draw()
 end
 
 function love.update(dt)

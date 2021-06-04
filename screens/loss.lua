@@ -9,22 +9,22 @@ local graphics = lickRequire "graphics"
 
 local baseScreen = lickRequire "screens/base"
 
-local startScreen = baseScreen:new()
+local lossScreen = baseScreen:new()
 
-function startScreen:init()
+function lossScreen:init(gameScreen)
 	self.renderers = {
-		graphics.StartRenderer:new(),
+		graphics.LossRenderer:new(gameScreen),
 	}
 end
 
-function startScreen:update()
+function lossScreen:update()
 end
 
-function startScreen:keypressed(key)
+function lossScreen:keypressed(key)
 	if key == 'space' or key == 'enter' then
 		local gameScreen = lickRequire "screens/game"
 		core.switchScreen(gameScreen:new())
 	end
 end
 
-return startScreen
+return lossScreen

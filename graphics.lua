@@ -156,7 +156,7 @@ function BoardRenderer:updateBackgroundGraphics()
 	self.backgroundGraphics = tove.newGraphics()
 	self.backgroundGraphics:setDisplay('mesh')
 
-	if self.board.pieceR - self.board.piece.height >= 0 then
+	if self.board.piece and self.board.pieceR - self.board.piece.height >= 0 then
 		self:drawSide(self.board:side(self.board.pieceT))
 	end
 
@@ -259,6 +259,8 @@ function BoardRenderer:updatePieceGraphics()
 	self.pieceGraphics = tove.newGraphics()
 	self.pieceGraphics:setDisplay('mesh')
 
+	if not self.board.piece then return end
+
 	for t, r in self.board:iterPieceSquares() do
 		self:drawSquare(t, r, self.pieceGraphics)
 	end
@@ -319,6 +321,42 @@ function StartRenderer:draw()
 		self.startFont,
 		cx - size/2,
 		cy + size * .1,
+		size,
+		"center"
+	)
+end
+
+LossRenderer = common.object:new()
+
+function LossRenderer:init(gameScreen)
+	self.gameScreen = gameScreen
+
+	self:resize()
+end
+
+function LossRenderer:resize()
+	self.gameScreen:resize()
+
+	local _, _, size = getCenterAndSize()
+
+	self.font = love.graphics.newFont("fonts/AlegreyaSansSC-Light.ttf", size * .1)
+end
+
+function LossRenderer:draw()
+	local cx, cy, size = getCenterAndSize()
+	local width, height = love.graphics.getDimensions()
+
+	self.gameScreen:draw()
+
+	love.graphics.setColor(0, 0, 0, .9)
+	love.graphics.rectangle('fill', 0, 0, width, height)
+
+	love.graphics.setColor(1, 1, 1)
+	love.graphics.printf(
+		"Game Over",
+		self.font,
+		cx - size/2,
+		cy - size * .05,
 		size,
 		"center"
 	)
