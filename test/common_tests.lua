@@ -74,3 +74,59 @@ notion("grid column and row accessors work correctly", function()
 	check(g:col(6)):shallowMatches({0,0,0,0,0})
 	check(g:col(7)):shallowMatches({0,0,0,1,0})
 end)
+
+notion("interval fires at or after given interval and automatically resets", function()
+	local i = common.interval:new(.8)
+	i:increment(.2)
+	check(i:firing()):is(false)
+	i:increment(.3)
+	check(i:firing()):is(false)
+	i:increment(.2)
+	check(i:firing()):is(false)
+	i:increment(.25)
+	check(i:firing()):is(true)
+
+	i:increment(.8)
+	check(i:firing()):is(true)
+end)
+
+notion("interval can be paused", function()
+	-- Incrementing after pause
+	local i = common.interval:new(.8)
+	i:pause()
+	i:increment(.9)
+	check(i:firing()):is(false)
+
+	i:start()
+	check(i:firing()):is(true)
+
+	-- Incrementing before pause
+	i = common.interval:new(.8)
+	i:increment(.9)
+	i:pause()
+	check(i:firing()):is(false)
+end)
+
+notion("interval can be stopped and resets when stopped", function()
+	local i = common.interval:new(.8)
+	i:stop()
+	i:increment(.9)
+	check(i:firing()):is(false)
+
+	i:start()
+	check(i:firing()):is(false)
+
+	i:increment(.8)
+	check(i:firing()):is(true)
+end)
+
+notion("interval can be reset", function()
+	local i = common.interval:new(.8)
+	i:increment(.9)
+
+	i:reset()
+	check(i:firing()):is(false)
+
+	i:increment(.8)
+	check(i:firing()):is(true)
+end)

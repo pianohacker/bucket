@@ -14,20 +14,22 @@ local DROP_INTERVAL = .5
 local gameScreen = common.object:new()
 
 function gameScreen:init()
-	self.dropCountup = DROP_INTERVAL
+	self.dropInterval = common.interval:new(DROP_INTERVAL)
+	self.dropInterval:increment(DROP_INTERVAL)
+
 	self.board = board:new {
 		width = 8,
 		depth = 6
 	}
+	self.lost = false
 
 	self.renderers = {
-		graphics.BoardRenderer:new(self.board)
+		graphics.BoardRenderer:new(self.board),
+		-- graphics.LossOverlayRenderer:new(function() return self.lost end),
 	}
 end
 
 function gameScreen:dropPiece()
-	self.dropCountup = 0
-
 	if not self.board.piece then
 		self.board:startPiece(piece.random())
 	elseif not self.board:dropPiece() then
@@ -38,9 +40,9 @@ function gameScreen:dropPiece()
 end
 
 function gameScreen:update(dt)
-	self.dropCountup = self.dropCountup + dt
+	self.dropInterval:increment(dt)
 
-	if self.dropCountup >= DROP_INTERVAL then
+	if self.dropInterval:firing() then
 		self:dropPiece()
 	end
 end
@@ -51,6 +53,7 @@ function gameScreen:keypressed(key)
 	elseif key == 'a' then
 		self.board:shiftPiece(1)
 	elseif key == 'e' then
+		self.dropInterval:reset()
 		self:dropPiece()
 	elseif key == 'r' then
 		self.board:rotatePiece(-1)

@@ -213,3 +213,44 @@ function grid:col(x)
 
 	return result
 end
+
+interval = object:new()
+
+function interval:init(length)
+	self.length = length
+	self.elapsed = 0
+end
+
+function interval:increment(dt)
+	if self.stopped then return false end
+
+	self.elapsed = self.elapsed + dt
+end
+
+function interval:firing()
+	if self.paused or self.stopped then return false end
+
+	if self.elapsed >= self.length then
+		self.elapsed = 0
+		return true
+	end
+
+	return false
+end
+
+function interval:pause()
+	self.paused = true
+end
+
+function interval:stop()
+	self.stopped = true
+end
+
+function interval:start()
+	self.stopped = false
+	self.paused = false
+end
+
+function interval:reset()
+	self.elapsed = 0
+end
