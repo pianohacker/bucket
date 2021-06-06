@@ -89,7 +89,7 @@ end
 notion("unobstructed piece movement succeeds", function()
 	local b = board:new {width = 5, depth = 3}
 
-	b:startPiece(piece.MINI_J, 3)
+	b:startPiece(piece.TRI.J, 3)
 	b:setPiece()
 	checkBoardGridIs(b, [[
 		   █▀▀▀█▀█
@@ -101,7 +101,7 @@ notion("unobstructed piece movement succeeds", function()
 		   ▀▀▀▀▀▀▀
 	]])
 
-	b:startPiece(piece.Z, 7)
+	b:startPiece(piece.TET.Z, 7)
 	check(b:rotatePiece(1)):is(true)
 	check(b:dropPiece()):is(true)
 	check(b:dropPiece()):is(true)
@@ -116,7 +116,7 @@ notion("unobstructed piece movement succeeds", function()
 		   ▀▀▀▀▀▀▀
 	]])
 
-	b:startPiece(piece.T, 18)
+	b:startPiece(piece.TET.T, 18)
 	check(b:rotatePiece(-1)):is(true)
 	check(b:dropPiece()):is(true)
 	check(b:dropPiece()):is(true)
@@ -136,7 +136,7 @@ notion("pieces move completely across edges", function()
 	local b = board:new {width = 5, depth = 4}
 
 	-- Moving left across an edge
-	b:startPiece(piece.I, 1)
+	b:startPiece(piece.TET.I, 1)
 	b:shiftPiece(-1)
 	b:setPiece()
 	checkBoardGridIs(b, [[
@@ -151,7 +151,7 @@ notion("pieces move completely across edges", function()
 	]])
 
 	-- Moving right across an edge
-	b:startPiece(piece.I, 20)
+	b:startPiece(piece.TET.I, 20)
 	b:shiftPiece(1)
 	b:setPiece()
 	checkBoardGridIs(b, [[
@@ -166,7 +166,7 @@ notion("pieces move completely across edges", function()
 	]])
 
 	-- Moving left across an edge after rotation
-	b:startPiece(piece.I, 12)
+	b:startPiece(piece.TET.I, 12)
 	b:rotatePiece(1)
 	b:shiftPiece(-1)
 	b:setPiece()
@@ -194,7 +194,7 @@ notion("piece movement blocked by collision", function()
 	]]
 
 	-- Rotating next to a piece
-	b:startPiece(piece.S, 3)
+	b:startPiece(piece.TET.S, 3)
 	check(b:dropPiece()):is(true)
 	check(b:dropPiece()):is(true)
 	check(b:dropPiece()):is(true)
@@ -217,7 +217,7 @@ notion("piece movement blocked by collision", function()
 	-- Rotating next to an edge
 	-- Kick to the right
 	b = board:new {width = 5, depth = 3}
-	b:startPiece(piece.S, 1)
+	b:startPiece(piece.TET.S, 1)
 	check(b:dropPiece()):is(true)
 	check(b:rotatePiece(-1)):is(true)
 	b:setPiece()
@@ -232,7 +232,7 @@ notion("piece movement blocked by collision", function()
 	]])
 
 	-- Kick to the left
-	b:startPiece(piece.Z, 4)
+	b:startPiece(piece.TET.Z, 4)
 	check(b:rotatePiece(1)):is(true)
 	b:setPiece()
 	checkBoardGridIs(b, [[
@@ -246,7 +246,7 @@ notion("piece movement blocked by collision", function()
 	]])
 
 	-- Kick two to the left
-	b:startPiece(piece.I, 10)
+	b:startPiece(piece.TET.I, 10)
 	check(b:rotatePiece(1)):is(true)
 	b:setPiece()
 	checkBoardGridIs(b, [[
@@ -270,7 +270,7 @@ notion("piece movement blocked by collision", function()
 	     ▀▀▀▀▀▀▀
 	]]
 
-	b:startPiece(piece.I, 3)
+	b:startPiece(piece.TET.I, 3)
 	check(b:rotatePiece(-1)):is(false)
 	check(b:rotatePiece(1)):is(false)
 	b:setPiece()
@@ -286,7 +286,7 @@ notion("piece movement blocked by collision", function()
 
 	-- Unsuccessfully rotating at the bottom
 	local b = board:new {width = 5, depth = 3}
-	b:startPiece(piece.T, 16)
+	b:startPiece(piece.TET.T, 16)
 	check(b:rotatePiece(-1)):is(true)
 	check(b:dropPiece()):is(true)
 	check(b:dropPiece()):is(true)
@@ -313,7 +313,7 @@ notion("isGridSquareFilled finds filled squares in bottom and wall from all side
 	local b = board:new {width = 5, depth = 3}
 
 	for _, t in ipairs({2, 7, 12, 17}) do
-		b:startPiece(piece.S, t)
+		b:startPiece(piece.TET.S, t)
 		b:dropPiece()
 		b:setPiece()
 
@@ -597,7 +597,7 @@ notion("pieces skip blocked sides during movement", function()
 	]]
 
 	-- Shifting pieces clockwise
-	b:startPiece(piece.O, 4)
+	b:startPiece(piece.TET.O, 4)
 	b:shiftPiece(1)
 	b:setPiece()
 	checkBoardGridIs(b, [[
@@ -620,7 +620,7 @@ notion("pieces skip blocked sides during movement", function()
 		   █     █
 		   ▀▀▀▀▀▀▀
 	]]
-	b:startPiece(piece.O, 1)
+	b:startPiece(piece.TET.O, 1)
 	b:shiftPiece(-1)
 	b:setPiece()
 	checkBoardGridIs(b, [[
@@ -643,7 +643,7 @@ notion("pieces skip blocked sides during movement", function()
 		   █     █
 		   ▀▀▀▀▀▀▀
 	]]
-	b:startPiece(piece.O, 4)
+	b:startPiece(piece.TET.O, 4)
 	b:shiftPiece(1)
 	b:setPiece()
 	checkBoardGridIs(b, [[
@@ -666,7 +666,7 @@ notion("pieces skip blocked sides during movement", function()
 		   █     █
 		   ▀▀▀▀▀▀▀
 	]]
-	b:startPiece(piece.O, 16)
+	b:startPiece(piece.TET.O, 16)
 	b:shiftPiece(-1)
 	b:setPiece()
 	checkBoardGridIs(b, [[
@@ -700,7 +700,7 @@ notion("pieces never start on blocked sides", function()
 		return val
 	end
 
-	b:startPiece(piece.T)
+	b:startPiece(piece.TET.T)
 	b:setPiece()
 	checkBoardGridIs(b, [[
 		   █▀▀█▀▀█
@@ -736,7 +736,7 @@ end
 notion("iterPieceSquares returns exactly the squares occupied by a piece", function()
 	local b = board:new({ width = 5, depth = 3})
 
-	b:startPiece(piece.T, 3)
+	b:startPiece(piece.TET.T, 3)
 	lu.assertItemsEquals(collectIter(b:iterPieceSquares()), {{3, 3}, {3, 2}, {4, 2}, {3, 1}})
 
 	b:dropPiece()

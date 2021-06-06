@@ -8,8 +8,8 @@ local common = require("test.common")
 
 local piece = require("piece")
 
-notion("initial piece_bounds are correct", function()
-	local p1 = piece.I
+notion("initial piece bounds are correct", function()
+	local p1 = piece.TET.I
 	check(p1.left):is(2)
 	check(p1.right):is(2)
 	check(p1.top):is(1)
@@ -19,7 +19,7 @@ notion("initial piece_bounds are correct", function()
 	check(p1.width):is(1)
 	check(p1.height):is(4)
 
-	local p2 = piece.T
+	local p2 = piece.TET.T
 	check(p2.left):is(2)
 	check(p2.right):is(3)
 	check(p2.top):is(1)
@@ -31,7 +31,7 @@ notion("initial piece_bounds are correct", function()
 end)
 
 notion("rotateLeft works correctly", function()
-	local p1 = piece.I
+	local p1 = piece.TET.I
 	p1 = p1:rotateLeft()
 
 	check(common.basicColsRepr(p1)):is(common.dedent [[
@@ -45,7 +45,7 @@ notion("rotateLeft works correctly", function()
 	check(p1.top):is(3)
 	check(p1.bottom):is(3)
 
-	local p2 = piece.T
+	local p2 = piece.TET.T
 	p2 = p2:rotateLeft()
 
 	check(common.basicColsRepr(p2)):is(common.dedent [[
@@ -58,7 +58,7 @@ notion("rotateLeft works correctly", function()
 	check(p2.top):is(1)
 	check(p2.bottom):is(2)
 
-	local p3 = piece.L
+	local p3 = piece.TET.L
 	p3 = p3:rotateLeft()
 
 	check(common.basicColsRepr(p3)):is(common.dedent [[
@@ -73,7 +73,7 @@ notion("rotateLeft works correctly", function()
 end)
 
 notion("rotateRight works correctly", function()
-	local p1 = piece.I
+	local p1 = piece.TET.I
 	p1 = p1:rotateRight()
 
 	check(common.basicColsRepr(p1)):is(common.dedent [[
@@ -87,7 +87,7 @@ notion("rotateRight works correctly", function()
 	check(p1.top):is(2)
 	check(p1.bottom):is(2)
 
-	local p2 = piece.T
+	local p2 = piece.TET.T
 	p2 = p2:rotateRight()
 
 	check(common.basicColsRepr(p2)):is(common.dedent [[
@@ -100,7 +100,7 @@ notion("rotateRight works correctly", function()
 	check(p2.top):is(2)
 	check(p2.bottom):is(3)
 
-	local p3 = piece.L
+	local p3 = piece.TET.L
 	p3 = p3:rotateRight()
 
 	check(common.basicColsRepr(p3)):is(common.dedent [[
