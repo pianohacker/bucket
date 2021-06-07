@@ -56,12 +56,12 @@ function cielchToRgb(L, C, H)
 	local X = (d-b) / (a-c)
 	local Z = X*a + b
 
-	-- XYZ -> Linear rgb
+	-- XYZ -> Linear srgb
 	local r = M11 * X + M12 * Y + M13 * Z
 	local g = M21 * X + M22 * Y + M23 * Z
 	local b_ = M31 * X + M32 * Y + M33 * Z
 
-	-- Linear rgb -> RGB
+	-- Linear srgb -> sRGB
 	local R = math.floor(math.pow(r, gamma_inv) * 255 + 0.5)
 	local G = math.floor(math.pow(g, gamma_inv) * 255 + 0.5)
 	local B = math.floor(math.pow(b_, gamma_inv) * 255 + 0.5)
