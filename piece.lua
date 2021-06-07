@@ -4,9 +4,15 @@
 -- License, v. 2.0. If a copy of the MPL was not distributed with this
 -- file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+local hsluv = require('hsluv.hsluv')
+
 -- These pieces must be in square grids, for easy rotation.
 local PIECE_GRIDS = {
 	TRI = {
+		color = {
+			S = 50,
+			L = 75,
+		},
 		I = {
 			{0,1,0},
 			{0,1,0},
@@ -22,6 +28,10 @@ local PIECE_GRIDS = {
 		},
 	},
 	TET = {
+		color = {
+			S = 100,
+			L = 50,
+		},
 		I = {
 			{0,1,0,0},
 			{0,1,0,0},
@@ -160,7 +170,17 @@ end
 for category_name, piece_grids in pairs(PIECE_GRIDS) do
 	piece[category_name] = {}
 
+	local numPieces = 0
+	for _, _ in pairs(piece_grids) do
+		numPieces = numPieces + 1
+	end
+	numPieces = numPieces - 1 -- Ignore `color` key
+	local H = 0
+	local Hstep = 360 / numPieces
+
 	for name, piece_yx in pairs(piece_grids) do
+		if name == 'color' then goto continue end
+
 		assert(#piece_yx == #piece_yx[1])
 
 		local piece_xy = newPiece()
@@ -175,8 +195,17 @@ for category_name, piece_grids in pairs(PIECE_GRIDS) do
 
 		piece_xy:setBounds()
 
+		piece_xy.color = hsluv.hsluv_to_hex({
+			H,
+			piece_grids.color.S,
+			piece_grids.color.L,
+		})
+		H = H + Hstep
+
 		table.insert(PIECES, piece_xy)
 		piece[category_name][name] = piece_xy
+
+		::continue::
 	end
 end
 
