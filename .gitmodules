@@ -13,3 +13,6 @@
 [submodule "luaunit"]
 	path = luaunit
 	url = https://github.com/bluebird75/luaunit
+[submodule "hsluv"]
+	path = hsluv
+	url = https://github.com/hsluv/hsluv-lua
