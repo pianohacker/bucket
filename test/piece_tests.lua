@@ -30,9 +30,9 @@ notion("initial piece bounds are correct", function()
 	check(p2.height):is(3)
 end)
 
-notion("rotateLeft works correctly", function()
+notion("rotation works correctly and updates bounds", function()
 	local p1 = piece.TET.I
-	p1 = p1:rotateLeft()
+	p1 = p1:rotate(-1)
 
 	check(common.basicColsRepr(p1)):is(common.dedent [[
 		____
@@ -46,7 +46,7 @@ notion("rotateLeft works correctly", function()
 	check(p1.bottom):is(3)
 
 	local p2 = piece.TET.T
-	p2 = p2:rotateLeft()
+	p2 = p2:rotate(-1)
 
 	check(common.basicColsRepr(p2)):is(common.dedent [[
 		_x_
@@ -59,7 +59,7 @@ notion("rotateLeft works correctly", function()
 	check(p2.bottom):is(2)
 
 	local p3 = piece.TET.L
-	p3 = p3:rotateLeft()
+	p3 = p3:rotate(-1)
 
 	check(common.basicColsRepr(p3)):is(common.dedent [[
 		__x
@@ -70,46 +70,50 @@ notion("rotateLeft works correctly", function()
 	check(p3.right):is(3)
 	check(p3.top):is(1)
 	check(p3.bottom):is(2)
-end)
 
-notion("rotateRight works correctly", function()
-	local p1 = piece.TET.I
-	p1 = p1:rotateRight()
+	local p4 = piece.TET.I
+	p4 = p4:rotate(1)
 
-	check(common.basicColsRepr(p1)):is(common.dedent [[
+	check(common.basicColsRepr(p4)):is(common.dedent [[
 		____
 		xxxx
 		____
 		____
 	]])
-	check(p1.left):is(1)
-	check(p1.right):is(4)
-	check(p1.top):is(2)
-	check(p1.bottom):is(2)
+	check(p4.left):is(1)
+	check(p4.right):is(4)
+	check(p4.top):is(2)
+	check(p4.bottom):is(2)
 
-	local p2 = piece.TET.T
-	p2 = p2:rotateRight()
+	local p5 = piece.TET.T
+	p5 = p5:rotate(1)
 
-	check(common.basicColsRepr(p2)):is(common.dedent [[
+	check(common.basicColsRepr(p5)):is(common.dedent [[
 		___
 		xxx
 		_x_
 	]])
-	check(p2.left):is(1)
-	check(p2.right):is(3)
-	check(p2.top):is(2)
-	check(p2.bottom):is(3)
+	check(p5.left):is(1)
+	check(p5.right):is(3)
+	check(p5.top):is(2)
+	check(p5.bottom):is(3)
 
-	local p3 = piece.TET.L
-	p3 = p3:rotateRight()
+	local p6 = piece.TET.L
+	p6 = p6:rotate(1)
 
-	check(common.basicColsRepr(p3)):is(common.dedent [[
+	check(common.basicColsRepr(p6)):is(common.dedent [[
 		___
 		xxx
 		x__
 	]])
-	check(p3.left):is(1)
-	check(p3.right):is(3)
-	check(p3.top):is(2)
-	check(p3.bottom):is(3)
+	check(p6.left):is(1)
+	check(p6.right):is(3)
+	check(p6.top):is(2)
+	check(p6.bottom):is(3)
+end)
+
+notion("piece rotation preserves color", function()
+	local p = piece.TET.L
+
+	check(p:rotate(1).color):is(p.color)
 end)

@@ -115,7 +115,7 @@ function board:iterOccupiedSquares()
 			end
 
 			if r >= 1 and self.upperGrid[t][r] then
-				return t, r
+				return t, r, self.upperGrid[t][r]
 			end
 		end
 
@@ -127,7 +127,8 @@ function board:iterOccupiedSquares()
 			end
 
 			if y <= self.width and self.lowerGrid[x][y] then
-				return self:gridToRadial(x, y)
+				local t_, r_ = self:gridToRadial(x, y)
+				return t_, r_, self.lowerGrid[x][y]
 			end
 		end
 
@@ -201,7 +202,7 @@ function board:setPiece()
 	self:markPieceChanged()
 
 	for t, r in self:iterPieceSquares() do
-		self:fillGridSquare(t, r)
+		self:fillGridSquare(t, r, self.piece.color)
 	end
 
 	self.piece = nil
@@ -210,12 +211,7 @@ end
 function board:rotatePiece(direction)
 	self:markPieceChanged()
 
-	local piece
-	if direction == -1 then
-		piece = self.piece:rotateLeft()
-	else
-		piece = self.piece:rotateRight()
-	end
+	local piece = self.piece:rotate(direction)
 
 	local newTBase = self.pieceT - self.piece.xOffset + piece.xOffset
 	local newT
@@ -343,23 +339,23 @@ function board:isGridSquareFilled(t, r)
 	t = self:normalizeT(t)
 
 	if r > 0 then
-		return self.upperGrid[t][r]
+		return not not self.upperGrid[t][r]
 	end
 
 	local x, y = self:radialToGrid(t, r)
 
-	return self.lowerGrid[x][y]
+	return not not self.lowerGrid[x][y]
 end
 
-function board:fillGridSquare(t, r)
+function board:fillGridSquare(t, r, color)
 	t = self:normalizeT(t)
 
 	if r > 0 then
-		self.upperGrid[t][r] = true
+		self.upperGrid[t][r] = color
 	else
 		local x, y = self:radialToGrid(t, r)
 
-		self.lowerGrid[x][y] = true
+		self.lowerGrid[x][y] = color
 	end
 end
 
@@ -451,10 +447,10 @@ function board:clearLines()
 
 				if newX and newY then
 					if newX >= 1 and newX <= self.width and newY >= 1 and newY <= self.width then
-						self.lowerGrid[newX][newY] = true
+						self.lowerGrid[newX][newY] = oldUpperGrid[t][r]
 					else
 						local newT, newR = self:gridToRadial(newX, newY)
-						self.upperGrid[newT][newR] = true
+						self.upperGrid[newT][newR] = oldUpperGrid[t][r]
 					end
 				end
 			end

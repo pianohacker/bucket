@@ -740,7 +740,7 @@ notion("iterPieceSquares returns exactly the squares occupied by a piece", funct
 	lu.assertItemsEquals(collectIter(b:iterPieceSquares()), {{3, 3}, {3, 2}, {4, 2}, {3, 1}})
 
 	b:dropPiece()
-	b:rotatePiece()
+	b:rotatePiece(1)
 	lu.assertItemsEquals(collectIter(b:iterPieceSquares()), {{2, 1}, {3, 1}, {4, 1}, {3, 0}})
 end)
 
@@ -758,23 +758,23 @@ notion("iterOccupiedSquares returns exactly the squares already occupied", funct
 	lu.assertItemsEquals(
 		collectIter(b:iterOccupiedSquares()),
 		{
-			{1, -1},
-			{1, -2},
-			{1, -3},
-			{2, -4},
-			{3, 2},
-			{4, 3},
-			{4, 2},
-			{5, -2},
-			{5, -3},
-			{7, 1},
-			{8, 1},
-			{12, 2},
-			{13, 2},
-			{14, 1},
-			{18, 1},
-			{19, 3},
-			{20, 3},
+			{1, -1, true},
+			{1, -2, true},
+			{1, -3, true},
+			{2, -4, true},
+			{3, 2, true},
+			{4, 3, true},
+			{4, 2, true},
+			{5, -2, true},
+			{5, -3, true},
+			{7, 1, true},
+			{8, 1, true},
+			{12, 2, true},
+			{13, 2, true},
+			{14, 1, true},
+			{18, 1, true},
+			{19, 3, true},
+			{20, 3, true},
 		}
 	)
 end)

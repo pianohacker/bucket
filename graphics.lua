@@ -178,13 +178,20 @@ function BoardRenderer:updateBackgroundGraphics()
 	end
 end
 
-function BoardRenderer:updateSquareGraphics()
-	for t, r in self.board:iterOccupiedSquares() do
-		self:drawSquare(t, r, self.gridGraphics)
-	end
+local function hexToRgba(hex)
+	hex = hex:gsub('#', '')
+	return tonumber("0x" .. hex:sub(1, 2)) / 255,
+			tonumber("0x" .. hex:sub(3, 4)) / 255,
+			tonumber("0x" .. hex:sub(5, 6)) / 255,
+			tonumber("0x" .. hex:sub(7, 8)) / 255
+end
 
-	self.gridGraphics:setFillColor("#ffffff88")
-	self.gridGraphics:fill()
+function BoardRenderer:updateSquareGraphics()
+	for t, r, color in self.board:iterOccupiedSquares() do
+		self:drawSquare(t, r, self.gridGraphics)
+		self.gridGraphics:setFillColor(hexToRgba(color .. "99"))
+		self.gridGraphics:fill()
+	end
 end
 
 function BoardRenderer:updateGridLineGraphics()
@@ -265,7 +272,7 @@ function BoardRenderer:updatePieceGraphics()
 		self:drawSquare(t, r, self.pieceGraphics)
 	end
 
-	self.pieceGraphics:setFillColor("#ffffff88")
+	self.pieceGraphics:setFillColor(self.board.piece.color)
 	self.pieceGraphics:fill()
 end
 

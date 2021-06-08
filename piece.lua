@@ -109,60 +109,55 @@ function piece:setBounds()
 	self.yOffset = self.top - 1
 end
 
-function piece:rotateLeft()
+function piece:rotate(direction)
 	local rotPiece = newPiece()
 
-	--  4321
-	-- a____
-	-- b____
-	-- c____
-	-- d____
-	--
-	-- rotates to:
-	--
-	--  abcd
-	-- 1____
-	-- 2____
-	-- 3____
-	-- 4____
+	if direction == -1 then -- Left
+		--  4321
+		-- a____
+		-- b____
+		-- c____
+		-- d____
+		--
+		-- rotates to:
+		--
+		--  abcd
+		-- 1____
+		-- 2____
+		-- 3____
+		-- 4____
 
-	for x = 1,#self[1] do
-		rotPiece[x] = {}
-		for y = 1,#self do
-			rotPiece[x][y] = self[#self[1] - y + 1][x]
+		for x = 1,#self[1] do
+			rotPiece[x] = {}
+			for y = 1,#self do
+				rotPiece[x][y] = self[#self[1] - y + 1][x]
+			end
+		end
+	elseif direction == 1 then -- Right
+		--  1234
+		-- d____
+		-- c____
+		-- b____
+		-- a____
+		--
+		-- rotates to:
+		--
+		--  abcd
+		-- 1____
+		-- 2____
+		-- 3____
+		-- 4____
+
+		for x = 1,#self[1] do
+			rotPiece[x] = {}
+			for y = 1,#self do
+				rotPiece[x][y] = self[y][#self - x + 1]
+			end
 		end
 	end
 
 	rotPiece:setBounds()
-
-	return rotPiece
-end
-
-function piece:rotateRight()
-	local rotPiece = newPiece()
-
-	--  1234
-	-- d____
-	-- c____
-	-- b____
-	-- a____
-	--
-	-- rotates to:
-	--
-	--  abcd
-	-- 1____
-	-- 2____
-	-- 3____
-	-- 4____
-
-	for x = 1,#self[1] do
-		rotPiece[x] = {}
-		for y = 1,#self do
-			rotPiece[x][y] = self[y][#self - x + 1]
-		end
-	end
-
-	rotPiece:setBounds()
+	rotPiece.color = self.color
 
 	return rotPiece
 end

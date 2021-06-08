@@ -202,7 +202,7 @@ function gridRepr(upper, lower)
 		end
 		row:insert(true)
 		for t = tStart,tEnd,tDelta do
-			row:insert(upper[t][r])
+			row:insert(not not upper[t][r])
 		end
 		row:insert(true)
 		if r == 1 then
@@ -233,15 +233,15 @@ function gridRepr(upper, lower)
 		row:insert(true)
 
 		for r = depth,1,-1 do
-			row:insert(upper[width * 4 + 1 - y][r])
+			row:insert(not not upper[width * 4 + 1 - y][r])
 		end
 
 		for x = 1,width do
-			row:insert(lower[x][y])
+			row:insert(not not lower[x][y])
 		end
 
 		for r = 1,depth do
-			row:insert(upper[width + y][r])
+			row:insert(not not upper[width + y][r])
 		end
 
 		row:insert(true)
