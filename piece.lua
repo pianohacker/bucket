@@ -29,7 +29,7 @@ local PIECE_GRIDS = {
 	},
 	TET = {
 		color = {
-			S = 100,
+			S = 75,
 			L = 50,
 		},
 		I = {
@@ -72,9 +72,9 @@ local PIECE_GRIDS = {
 
 PIECES = {}
 
-piece = {} 
+piece = {}
 piece.__index = piece
- 
+
 function piece.random()
 	return PIECES[love.math.random(1, #PIECES)]
 end
