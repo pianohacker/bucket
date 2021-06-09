@@ -7,10 +7,9 @@
 module("graphics", package.seeall)
 
 local common = require("common")
-local tove = require("tove")
 
 local function lerp2(a, b, t)
-	return b[1] * t + a[1] * (1-t), b[2] * t + a[2] * (1-t)
+	return {b[1] * t + a[1] * (1-t), b[2] * t + a[2] * (1-t)}
 end
 
 local function getCenterAndSize()
@@ -90,11 +89,11 @@ function BoardRenderer:updateGrid()
 
 	for t = 1, self.board.circumf do
 		for r = 1, self.board.depth - 1 do
-			self.upperGridPositions[t][r] = {lerp2(
+			self.upperGridPositions[t][r] = lerp2(
 				self.upperGridPositions[t][0],
 				self.upperGridPositions[t][self.board.depth],
 				r/self.board.depth
-			)}
+			)
 		end
 	end
 end
@@ -134,111 +133,165 @@ function BoardRenderer:gridPoint(t, r, side)
 	return self:bottomGridPoint(x, y)
 end
 
+local function unpackEach(...)
+	local result = common.list:new()
+
+	for _, t in ipairs({...}) do
+		for _, x in ipairs(t) do
+			result:insert(x)
+		end
+	end
+
+	return unpack(result)
+end
+
+local function flatUnpack(input)
+	local result = common.list:new()
+
+	for _, t in ipairs(input) do
+		for _, x in ipairs(t) do
+			result:insert(x)
+		end
+	end
+
+	return unpack(result)
+end
+
 function BoardRenderer:drawSquare(t, r, graphics)
 	local side = self.board:side(t)
 
-	graphics:moveTo(unpack(self:gridPoint(t, r, side)))
-	graphics:lineTo(unpack(self:gridPoint(t+1, r, side)))
-	graphics:lineTo(unpack(self:gridPoint(t+1, r-1, side)))
-	graphics:lineTo(unpack(self:gridPoint(t, r-1, side)))
+	love.graphics.polygon(
+		'fill',
+		unpackEach(
+			self:gridPoint(t+1, r-1, side),
+			self:gridPoint(t, r-1, side),
+			self:gridPoint(t, r, side),
+			self:gridPoint(t+1, r, side)
+		)
+	)
 end
 
 function BoardRenderer:drawSide(side)
-	self.backgroundGraphics:moveTo(unpack(self:gridPoint(side * self.board.width + 1, 0, side)))
-	self.backgroundGraphics:lineTo(unpack(self:gridPoint((side - 1) * self.board.width + 1, 0, side)))
+	local points = common.list:new()
+
+	points:insert(self:gridPoint(side * self.board.width + 1, 0, side))
+	points:insert(self:gridPoint((side - 1) * self.board.width + 1, 0, side))
 
 	for t = (side - 1) * self.board.width + 1, side * self.board.width + 1 do
-		self.backgroundGraphics:lineTo(unpack(self:gridPoint(t, self.board.depth, side)))
-	end
-end
-
-function BoardRenderer:updateBackgroundGraphics()
-	self.backgroundGraphics = tove.newGraphics()
-	self.backgroundGraphics:setDisplay('mesh')
-
-	if self.board.piece and self.board.pieceR - self.board.piece.height >= 0 then
-		self:drawSide(self.board:side(self.board.pieceT))
+		points:insert(self:gridPoint(t, self.board.depth, side))
 	end
 
-	self.backgroundGraphics:moveTo(unpack(self:bottomGridPoint(1, 1)))
-	self.backgroundGraphics:lineTo(unpack(self:bottomGridPoint(self.board.width + 1, 1)))
-	self.backgroundGraphics:lineTo(unpack(self:bottomGridPoint(self.board.width + 1, self.board.width + 1)))
-	self.backgroundGraphics:lineTo(unpack(self:bottomGridPoint(1, self.board.width + 1)))
-
-	self.backgroundGraphics:setFillColor(B_BG_HIGHLIGHT_COLOR)
-
-	self.backgroundGraphics:fill()
-
-	self.backgroundGraphics:setFillColor(B_BG_BLOCKED_COLOR)
-	for side = 1,4 do
-		if self.board:isSideBlocked(side) then
-			self:drawSide(side)
-			self.backgroundGraphics:fill()
-		end
-	end
+	love.graphics.polygon('fill', flatUnpack(points))
 end
 
 local function hexToRgba(hex)
 	hex = hex:gsub('#', '')
-	return tonumber("0x" .. hex:sub(1, 2)) / 255,
-			tonumber("0x" .. hex:sub(3, 4)) / 255,
-			tonumber("0x" .. hex:sub(5, 6)) / 255,
-			tonumber("0x" .. hex:sub(7, 8)) / 255
+
+	local r = tonumber("0x" .. hex:sub(1, 2))
+	local g = tonumber("0x" .. hex:sub(3, 4))
+	local b = tonumber("0x" .. hex:sub(5, 6))
+	local a = tonumber("0x" .. hex:sub(7, 8))
+
+	if a ~= nil then
+		return r/255, g/255, b/255, a/255
+	else
+		return r/255, g/255, b/255
+	end
 end
 
-function BoardRenderer:updateSquareGraphics()
+function BoardRenderer:updateBackgroundGraphics()
+	self.backgroundCanvas = love.graphics.newCanvas()
+	love.graphics.setCanvas(self.backgroundCanvas)
+
+	love.graphics.setColor(hexToRgba(B_BG_HIGHLIGHT_COLOR))
+	if self.board.piece and self.board.pieceR - self.board.piece.height >= 0 then
+		self:drawSide(self.board:side(self.board.pieceT))
+	end
+
+	love.graphics.polygon(
+		'fill',
+		unpackEach(
+			self:bottomGridPoint(1, 1),
+			self:bottomGridPoint(self.board.width + 1, 1),
+			self:bottomGridPoint(self.board.width + 1, self.board.width + 1),
+			self:bottomGridPoint(1, self.board.width + 1)
+		)
+	)
+
+	love.graphics.setColor(hexToRgba(B_BG_BLOCKED_COLOR))
+	for side = 1,4 do
+		if self.board:isSideBlocked(side) then
+			self:drawSide(side)
+		end
+	end
+
+	love.graphics.setCanvas()
+end
+
+function BoardRenderer:drawSquareGraphics()
 	for t, r, color in self.board:iterOccupiedSquares() do
+		love.graphics.setColor(hexToRgba(color .. "99"))
 		self:drawSquare(t, r, self.gridGraphics)
-		self.gridGraphics:setFillColor(hexToRgba(color .. "99"))
-		self.gridGraphics:fill()
 	end
 end
 
-function BoardRenderer:updateGridLineGraphics()
+function BoardRenderer:drawGridLineGraphics()
 	-- Lines up the side of the bucket
-	self.gridGraphics:setLineColor(B_GRID_COLOR)
+	love.graphics.setColor(hexToRgba(B_GRID_COLOR))
 	for t=1,self.board.circumf do
-		self.gridGraphics:moveTo(self.upperGridPositions[t][0][1], self.upperGridPositions[t][0][2])
-		self.gridGraphics:lineTo(self.upperGridPositions[t][self.board.depth][1], self.upperGridPositions[t][self.board.depth][2])
+		love.graphics.line(
+			self.upperGridPositions[t][0][1],
+			self.upperGridPositions[t][0][2],
+			self.upperGridPositions[t][self.board.depth][1],
+			self.upperGridPositions[t][self.board.depth][2]
+		)
 	end
-	self.gridGraphics:stroke()
 
 	-- Inner grid lines
-	self.gridGraphics:setLineColor(B_GRID_COLOR)
 	for x=2,self.board.width do
-		self.gridGraphics:moveTo(unpack(self:bottomGridPoint(x, 1)))
-		self.gridGraphics:lineTo(unpack(self:bottomGridPoint(x, self.board.width+1)))
+		love.graphics.line(unpackEach(
+			self:bottomGridPoint(x, 1),
+			self:bottomGridPoint(x, self.board.width+1)
+		))
 	end
 
 	for y=2,self.board.width do
-		self.gridGraphics:moveTo(unpack(self:bottomGridPoint(1, y)))
-		self.gridGraphics:lineTo(unpack(self:bottomGridPoint(self.board.width+1, y)))
+		love.graphics.line(unpackEach(
+			self:bottomGridPoint(1, y),
+			self:bottomGridPoint(self.board.width+1, y)
+		))
 	end
-	self.gridGraphics:stroke()
 
 	-- Outer, highlighted grid lines
-	self.gridGraphics:setLineColor(B_GRID_HIGHLIGHT_COLOR)
-	self.gridGraphics:moveTo(unpack(self:bottomGridPoint(1, 1)))
-	self.gridGraphics:lineTo(unpack(self:bottomGridPoint(1, self.board.width+1)))
-	self.gridGraphics:moveTo(unpack(self:bottomGridPoint(self.board.width+1, 1)))
-	self.gridGraphics:lineTo(unpack(self:bottomGridPoint(self.board.width+1, self.board.width+1)))
-	self.gridGraphics:moveTo(unpack(self:bottomGridPoint(1, 1)))
-	self.gridGraphics:lineTo(unpack(self:bottomGridPoint(self.board.width+1, 1)))
-	self.gridGraphics:moveTo(unpack(self:bottomGridPoint(1, self.board.width+1)))
-	self.gridGraphics:lineTo(unpack(self:bottomGridPoint(self.board.width+1, self.board.width+1)))
-
-	self.gridGraphics:setLineColor(B_GRID_HIGHLIGHT_COLOR)
-	self.gridGraphics:stroke()
+	love.graphics.setColor(hexToRgba(B_GRID_HIGHLIGHT_COLOR))
+	love.graphics.line(unpackEach(
+		self:bottomGridPoint(1, 1),
+		self:bottomGridPoint(1, self.board.width+1)
+	))
+	love.graphics.line(unpackEach(
+		self:bottomGridPoint(self.board.width+1, 1),
+		self:bottomGridPoint(self.board.width+1, self.board.width+1)
+	))
+	love.graphics.line(unpackEach(
+		self:bottomGridPoint(1, 1),
+		self:bottomGridPoint(self.board.width+1, 1)
+	))
+	love.graphics.line(unpackEach(
+		self:bottomGridPoint(1, self.board.width+1),
+		self:bottomGridPoint(self.board.width+1, self.board.width+1)
+	))
 
 	-- Horizontal grid lines on outside of bucket
 	for r=1,self.board.depth do
-		self.gridGraphics:moveTo(lerp2(
+		local points = common.list:new()
+
+		points:insert(lerp2(
 			self.upperGridPositions[self.board.circumf][0],
 			self.upperGridPositions[self.board.circumf][self.board.depth],
 			r/self.board.depth
 		))
 		for t=1,self.board.circumf do
-			self.gridGraphics:lineTo(lerp2(
+			points:insert(lerp2(
 				self.upperGridPositions[t][0],
 				self.upperGridPositions[t][self.board.depth],
 				r/self.board.depth
@@ -246,34 +299,37 @@ function BoardRenderer:updateGridLineGraphics()
 		end
 
 		if r == self.board.depth then
-			self.gridGraphics:setLineColor(B_GRID_HIGHLIGHT_COLOR)
+			love.graphics.setColor(hexToRgba(B_GRID_HIGHLIGHT_COLOR))
 		else
-			self.gridGraphics:setLineColor(B_GRID_COLOR)
+			love.graphics.setColor(hexToRgba(B_GRID_COLOR))
 		end
-		self.gridGraphics:stroke()
+		love.graphics.line(flatUnpack(points))
 	end
 end
 
 function BoardRenderer:updateGridGraphics()
-	self.gridGraphics = tove.newGraphics()
-	self.gridGraphics:setDisplay('mesh')
+	self.gridCanvas = love.graphics.newCanvas()
+	love.graphics.setCanvas(self.gridCanvas)
 
-	self:updateSquareGraphics()
-	self:updateGridLineGraphics()
+	self:drawSquareGraphics()
+	self:drawGridLineGraphics()
+
+	love.graphics.setCanvas()
 end
 
 function BoardRenderer:updatePieceGraphics()
-	self.pieceGraphics = tove.newGraphics()
-	self.pieceGraphics:setDisplay('mesh')
+	self.pieceCanvas = love.graphics.newCanvas()
 
 	if not self.board.piece then return end
 
+	love.graphics.setCanvas(self.pieceCanvas)
+
+	love.graphics.setColor(hexToRgba(self.board.piece.color))
 	for t, r in self.board:iterPieceSquares() do
 		self:drawSquare(t, r, self.pieceGraphics)
 	end
 
-	self.pieceGraphics:setFillColor(self.board.piece.color)
-	self.pieceGraphics:fill()
+	love.graphics.setCanvas()
 end
 
 function BoardRenderer:draw()
@@ -293,9 +349,12 @@ function BoardRenderer:draw()
 	self.lastDrawnPieceGeneration = self.board.pieceGeneration
 	self.lastDrawnGridGeneration = self.board.gridGeneration
 
-	self.backgroundGraphics:draw()
-	self.pieceGraphics:draw()
-	self.gridGraphics:draw()
+	love.graphics.setColor(1, 1, 1, 1)
+	love.graphics.setBlendMode('alpha', 'premultiplied')
+	love.graphics.draw(self.backgroundCanvas)
+	love.graphics.draw(self.pieceCanvas)
+	love.graphics.draw(self.gridCanvas)
+	love.graphics.setBlendMode('alpha')
 end
 
 StartRenderer = common.object:new()
