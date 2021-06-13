@@ -12,9 +12,67 @@ local function lerp2(a, b, t)
 	return {b[1] * t + a[1] * (1-t), b[2] * t + a[2] * (1-t)}
 end
 
-local function getCenterAndSize()
-	local SWIDTH, SHEIGHT = love.graphics.getDimensions()
-	return SWIDTH/2, SHEIGHT/2, math.min(SWIDTH, SHEIGHT)
+local MIN_ASPECT = 1.6
+
+local lastFullWidth
+local lastFullHeight
+local lastLayout
+local function getLayout()
+	local fullWidth, fullHeight = love.graphics.getDimensions()
+
+	if fullWidth ~= lastFullWidth or fullHeight ~= lastFullHeight then
+		lastFullWidth, lastFullHeight = fullWidth, fullWidth
+
+		local width, height, shape
+		if fullWidth > fullHeight then
+			shape = 'wide'
+			if MIN_ASPECT * fullHeight < fullWidth then
+				width = fullHeight * MIN_ASPECT
+				height = fullHeight
+			else
+				width = fullWidth
+				height = fullWidth / MIN_ASPECT
+			end
+		else
+			shape = 'tall'
+			if MIN_ASPECT * fullWidth < fullHeight then
+				width = fullWidth
+				height = fullWidth * MIN_ASPECT
+			else
+				width = fullHeight / MIN_ASPECT
+				height = fullHeight
+			end
+		end
+
+		lastLayout = {
+			cx = fullWidth/2,
+			cy = fullHeight/2,
+			fullWidth = fullWidth,
+			fullHeight = fullHeight,
+			smallest = math.min(width, height),
+			width = width,
+			height = height,
+			shape = shape,
+		}
+	end
+
+	return lastLayout
+end
+
+local function unpackEachv(input)
+	local result = common.list:new()
+
+	for _, t in ipairs(input) do
+		for _, x in ipairs(t) do
+			result:insert(x)
+		end
+	end
+
+	return unpack(result)
+end
+
+local function unpackEach(...)
+	return unpackEachv({...})
 end
 
 local B_TOP_RADIUS = 0.4 -- Radius of outside of board as a proportion of the screen.
@@ -39,28 +97,28 @@ function BoardRenderer:resize()
 end
 
 function BoardRenderer:updateGrid()
-	self.gridGraphics = nil
+	self.lastDrawnGridGeneration = 0
+	self.lastDrawnPieceGeneration = 0
 
 	-- Scale to window
-	local size
-	self.center_x, self.center_y, size = getCenterAndSize()
+	local l = getLayout()
 
 	-- Calculate top of board
 	self.upperGridPositions = common.grid:new(self.board.circumf, self.board.depth)
-	local top_radius = size * (B_TOP_RADIUS + B_TOP_CORNERNESS)
+	local top_radius = l.smallest * (B_TOP_RADIUS + B_TOP_CORNERNESS)
 	local b_cornerness = top_radius * B_TOP_CORNERNESS
 	local step = 2 * math.pi / self.board.circumf
 	for t=1,self.board.circumf do
 		local angle = (t - 1) * step + B_START_ANGLE
 		local cornerness = (math.abs(math.sin((t - 1) * math.pi / self.board.width))) * b_cornerness
 		self.upperGridPositions[t][self.board.depth] = {
-			self.center_x + math.cos(angle) * (top_radius - cornerness),
-			self.center_y + math.sin(angle) * (top_radius - cornerness)
+			l.cx + math.cos(angle) * (top_radius - cornerness),
+			l.cy + math.sin(angle) * (top_radius - cornerness)
 		}
 	end
 
 	-- Calculate bottom of board
-	self.bottom_radius = size * B_BOTTOM_RADIUS
+	self.bottom_radius = l.smallest * B_BOTTOM_RADIUS
 
 	local t = 1
 	-- North
@@ -99,9 +157,11 @@ function BoardRenderer:updateGrid()
 end
 
 function BoardRenderer:bottomGridPoint(x, y)
+	local l = getLayout()
+
 	return {
-		self.center_x + self.bottom_radius * (2 * ((x - 1) / self.board.width) - 1),
-		self.center_y + self.bottom_radius * (2 * ((y - 1) / self.board.width) - 1),
+		l.cx + self.bottom_radius * (2 * ((x - 1) / self.board.width) - 1),
+		l.cy + self.bottom_radius * (2 * ((y - 1) / self.board.width) - 1),
 	}
 end
 
@@ -133,30 +193,6 @@ function BoardRenderer:gridPoint(t, r, side)
 	return self:bottomGridPoint(x, y)
 end
 
-local function unpackEach(...)
-	local result = common.list:new()
-
-	for _, t in ipairs({...}) do
-		for _, x in ipairs(t) do
-			result:insert(x)
-		end
-	end
-
-	return unpack(result)
-end
-
-local function flatUnpack(input)
-	local result = common.list:new()
-
-	for _, t in ipairs(input) do
-		for _, x in ipairs(t) do
-			result:insert(x)
-		end
-	end
-
-	return unpack(result)
-end
-
 function BoardRenderer:drawSquare(t, r, graphics)
 	local side = self.board:side(t)
 
@@ -181,7 +217,7 @@ function BoardRenderer:drawSide(side)
 		points:insert(self:gridPoint(t, self.board.depth, side))
 	end
 
-	love.graphics.polygon('fill', flatUnpack(points))
+	love.graphics.polygon('fill', unpackEachv(points))
 end
 
 local function hexToRgba(hex)
@@ -303,7 +339,7 @@ function BoardRenderer:drawGridLineGraphics()
 		else
 			love.graphics.setColor(hexToRgba(B_GRID_COLOR))
 		end
-		love.graphics.line(flatUnpack(points))
+		love.graphics.line(unpackEachv(points))
 	end
 end
 
@@ -364,30 +400,30 @@ function StartRenderer:init()
 end
 
 function StartRenderer:resize()
-	local cx, cy, size = getCenterAndSize()
+	local l = getLayout()
 
-	self.headerFont = love.graphics.newFont("fonts/AlegreyaSansSC-Light.ttf", size * .1)
-	self.startFont = love.graphics.newFont("fonts/AlegreyaSansSC-Light.ttf", size * .05)
+	self.headerFont = love.graphics.newFont("fonts/AlegreyaSansSC-Light.ttf", l.smallest * .1)
+	self.startFont = love.graphics.newFont("fonts/AlegreyaSansSC-Light.ttf", l.smallest * .05)
 end
 
 function StartRenderer:draw()
-	local cx, cy, size = getCenterAndSize()
+	local l = getLayout()
 
 	love.graphics.printf(
 		"Bucket",
 		self.headerFont,
-		cx - size/2,
-		cy - size * .2,
-		size,
+		l.cx - l.smallest/2,
+		l.cy - l.smallest * .2,
+		l.smallest,
 		"center"
 	)
 
 	love.graphics.printf(
 		"Press Enter or Space to start",
 		self.startFont,
-		cx - size/2,
-		cy + size * .1,
-		size,
+		l.cx - l.smallest/2,
+		l.cy + l.smallest * .1,
+		l.smallest,
 		"center"
 	)
 end
@@ -403,27 +439,32 @@ end
 function LossRenderer:resize()
 	self.gameScreen:resize()
 
-	local _, _, size = getCenterAndSize()
+	local l = getLayout()
 
-	self.font = love.graphics.newFont("fonts/AlegreyaSansSC-Light.ttf", size * .1)
+	self.font = love.graphics.newFont("fonts/AlegreyaSansSC-Light.ttf", l.smallest * .1)
 end
 
 function LossRenderer:draw()
-	local cx, cy, size = getCenterAndSize()
-	local width, height = love.graphics.getDimensions()
+	local l = getLayout()
 
 	self.gameScreen:draw()
 
 	love.graphics.setColor(0, 0, 0, .9)
-	love.graphics.rectangle('fill', 0, 0, width, height)
+	love.graphics.rectangle(
+		'fill',
+		0,
+		0,
+		l.fullWidth,
+		l.fullHeight
+	)
 
 	love.graphics.setColor(1, 1, 1)
 	love.graphics.printf(
 		"Game Over",
 		self.font,
-		cx - size/2,
-		cy - size * .05,
-		size,
+		l.cx - l.smallest/2,
+		l.cy - l.smallest * .05,
+		l.smallest,
 		"center"
 	)
 end
