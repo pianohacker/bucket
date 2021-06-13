@@ -4,10 +4,10 @@
 -- License, v. 2.0. If a copy of the MPL was not distributed with this
 -- file, You can obtain one at https://mozilla.org/MPL/2.0/.
 --
-local common = lickRequire "common"
-local graphics = lickRequire "graphics"
+local common = require "common"
+local graphics = require "graphics"
 
-local baseScreen = lickRequire "screens/base"
+local baseScreen = require "screens/base"
 
 local lossScreen = baseScreen:new()
 
@@ -22,7 +22,7 @@ end
 
 function lossScreen:keypressed(key)
 	if key == 'space' or key == 'enter' then
-		local gameScreen = lickRequire "screens/game"
+		local gameScreen = require "screens/game"
 		core.switchScreen(gameScreen:new())
 	end
 end

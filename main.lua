@@ -5,19 +5,8 @@
 -- file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 local cute = require "cute"
-local lick = require "lick"
 
-lick.files = {"main.lua"}
-lick.reset = "true"
-lick.debug = "true"
-
-function lickRequire(module)
-	table.insert(lick.files, module:gsub('[.]', '/') .. ".lua")
-
-	return require(module)
-end
-
-local startScreen = lickRequire "screens/start"
+local startScreen = require "screens/start"
 
 screen = nil
 profilerState = {
