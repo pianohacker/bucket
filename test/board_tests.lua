@@ -694,25 +694,27 @@ notion("pieces never start on blocked sides", function()
 	local oldrandom = love.math.random
 	local randomOffset = 1
 	local randomValues = {6, 18, 3}
-	love.math.random = function()
-		local val = randomValues[randomOffset]
-		randomOffset = (randomOffset % #randomValues) + 1
-		return val
-	end
 
-	b:startPiece(piece.TET.T)
-	b:setPiece()
-	checkBoardGridIs(b, [[
-		   █▀▀█▀▀█
-		▄▄▄█  █▀ █▄▄▄
-		█           █
-		█  ▀     ▀  █
-		█▄▄▄     ▄▄▄█
-		   █     █
-		   ▀▀▀▀▀▀▀
-	]])
-
-	love.math.random = oldrandom
+	common.withFieldReplaced(
+		love.math, 'random', function()
+			local val = randomValues[randomOffset]
+			randomOffset = (randomOffset % #randomValues) + 1
+			return val
+		end,
+		function()
+			b:startPiece(piece.TET.T)
+			b:setPiece()
+			checkBoardGridIs(b, [[
+				   █▀▀█▀▀█
+				▄▄▄█  █▀ █▄▄▄
+				█           █
+				█  ▀     ▀  █
+				█▄▄▄     ▄▄▄█
+				   █     █
+				   ▀▀▀▀▀▀▀
+			]])
+		end
+	)
 end)
 
 local function collectIter(f, s, var)

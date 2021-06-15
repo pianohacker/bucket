@@ -5,10 +5,27 @@
 -- file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 local common = require("common")
+local lu = require('luaunit.luaunit')
 
 notion("list:all returns true only if all values truthy", function()
 	check(common.list:from({false, true, false}):all()):is(false)
 	check(common.list:from({true, true, true}):all()):is(true)
+end)
+
+notion("list:fromTable can build a disconnected list from a table", function()
+	local reference = common.list:new()
+	reference:insert(4)
+	reference:insert(3)
+	reference:insert(1)
+	reference:insert(2)
+
+	local source = {4, 3, 1, 2}
+
+	lu.assertEquals(common.list:fromTable(source), reference)
+
+	source[4] = nil
+
+	lu.assertEquals(common.list:fromTable({4, 3, 1, 2}), reference)
 end)
 
 notion("grid starts out cleared", function()

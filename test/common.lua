@@ -291,3 +291,14 @@ function gridReflectY(cols)
 
 	return result
 end
+
+function withFieldReplaced(obj, field, replacement, block)
+	-- Note; as block should only fail when the test fails, we don't bother to restore the field on
+	-- error.
+	local old = obj[field]
+	obj[field] = replacement
+
+	block()
+
+	obj[field] = old
+end

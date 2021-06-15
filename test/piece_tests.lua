@@ -5,6 +5,7 @@
 -- file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 local common = require("test.common")
+local lu = require("luaunit.luaunit")
 
 local piece = require("piece")
 
@@ -116,4 +117,78 @@ notion("piece rotation preserves color", function()
 	local p = piece.TET.L
 
 	check(p:rotate(1).color):is(p.color)
+end)
+
+notion("piece bag with a given size contains that many unique elements", function()
+	local source = {}
+	for i = 1,1000 do table.insert(source, i) end
+
+	local picked = 400
+	local bag = piece.Bag:new(source, picked)
+
+	local seen = {}
+
+	for _ = 1,picked do
+		local x = bag:pick()
+
+		if seen[x] then
+			error("duplicate element " .. x)
+		end
+
+		seen[x] = 1
+	end
+end)
+
+notion("piece MultiBag contains weighted number of each category", function()
+	local bag = piece.MultiBag:new({
+		[piece.PIECE_SETS.TRI] = 2,
+		[piece.PIECE_SETS.TET] = 6,
+		[piece.PIECE_SETS.PENT] = 7,
+	})
+
+	local weightTotal = 2 + 6 + 7
+
+	local real = {}
+	for _ = 1,1000 do
+		local category = bag:pick().category
+		real[category] = (real[category] or 0) + 1
+	end
+
+	lu.assertAlmostEquals(real.TRI, 2 / weightTotal * 1000, 10)
+	lu.assertAlmostEquals(real.TET, 6 / weightTotal * 1000, 10)
+	lu.assertAlmostEquals(real.PENT, 7 / weightTotal * 1000, 10)
+end)
+
+notion("piece MultiBag exhausts a set before reusing it", function()
+	local bag = piece.MultiBag:new({
+		[{1,4,7,10,13}] = 4,
+		[{2,5,8,11,14}] = 5,
+		[{3,6,9,12,15}] = 2,
+	})
+
+	local seen = {}
+	local numSeen = 0
+	while numSeen < 5 do
+		local x = bag:pick()
+
+		if x % 3 == 0 then
+			if seen[x] then
+				error("duplicate element " .. x .. " after " .. numSeen .. " picks")
+			else
+				seen[x] = 1
+				numSeen = numSeen + 1
+			end
+		end
+	end
+end)
+
+notion("piece MultiBag can have a weight longer than a set's weight", function()
+	local bag = piece.MultiBag:new({
+		[{2,5}] = 4,
+		[{1,6}] = 6,
+	})
+
+	for _ = 1,10 do
+		lu.assertNotEquals(bag:pick(), nil)
+	end
 end)

@@ -88,6 +88,16 @@ list.maxn = table.maxn
 list.remove = table.remove
 list.sort = table.sort
 
+function list:fromTable(t)
+	local o = self:new()
+
+	for i, x in ipairs(t) do
+		o[i] = x
+	end
+
+	return o
+end
+
 function list:values()
 	local i = 0
 
@@ -111,6 +121,16 @@ function list:all()
 	end
 
 	return true
+end
+
+function list:shuffle()
+	for i = 1,#self do
+		local j = love.math.random(i, #self)
+
+		local x = self[i]
+		self[i] = self[j]
+		self[j] = x
+	end
 end
 
 grid = object:new()

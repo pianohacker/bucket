@@ -4,10 +4,11 @@
 -- License, v. 2.0. If a copy of the MPL was not distributed with this
 -- file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+local common = require('common')
 local hsluv = require('hsluv.hsluv')
 
 -- These pieces must be in square grids, for easy rotation.
-local PIECE_GRIDS = {
+local PIECES = {
 	TRI = {
 		color = {
 			S = 50,
@@ -174,10 +175,10 @@ local PIECE_GRIDS = {
 	},
 }
 
-PIECES = {}
-
 piece = {}
 piece.__index = piece
+
+piece.PIECE_SETS = {}
 
 function piece.random()
 	return PIECES[love.math.random(1, #PIECES)]
@@ -266,8 +267,9 @@ function piece:rotate(direction)
 	return rotPiece
 end
 
-for category_name, piece_grids in pairs(PIECE_GRIDS) do
+for category_name, piece_grids in pairs(PIECES) do
 	piece[category_name] = {}
+	piece.PIECE_SETS[category_name] = {}
 
 	local numPieces = 0
 	for _, _ in pairs(piece_grids) do
@@ -301,11 +303,60 @@ for category_name, piece_grids in pairs(PIECE_GRIDS) do
 		})
 		H = H + Hstep
 
-		table.insert(PIECES, piece_xy)
+		piece_xy.category = category_name
+
+		table.insert(piece.PIECE_SETS[category_name], piece_xy)
 		piece[category_name][name] = piece_xy
 
 		::continue::
 	end
+end
+
+local Bag = common.object:new()
+piece.Bag = Bag
+
+function Bag:init(values, setLength)
+	self.values = common.list:fromTable(values)
+	self.setLength = setLength or #values
+	self.pos = self.setLength + 1
+end
+
+function Bag:pick()
+	if self.pos > self.setLength then
+		self.values:shuffle()
+		self.pos = 1
+	end
+
+	local val = self.values[self.pos]
+	self.pos = self.pos + 1
+	return val
+end
+
+local MultiBag = common.object:new()
+piece.MultiBag = MultiBag
+
+function MultiBag:init(valueBags)
+	self.valueBags = common.list:new()
+
+	local setMap = common.list:new()
+	local setIndex = 1
+	for set, weight in pairs(valueBags) do
+		self.valueBags:insert(Bag:new(set))
+
+		for _ = 1, weight do
+			setMap:insert(setIndex)
+		end
+
+		setIndex = setIndex + 1
+	end
+
+	self.setIndexBag = Bag:new(setMap)
+end
+
+function MultiBag:pick()
+	local setIndex = self.setIndexBag:pick()
+
+	return self.valueBags[setIndex]:pick()
 end
 
 module("piece")
