@@ -29,11 +29,17 @@ function gameScreen:init()
 	self.renderers = {
 		graphics.BoardRenderer:new(self.board),
 	}
+
+	self.pieceBag = piece.MultiBag:new({
+		[piece.PIECE_SETS.TRI] = 2,
+		[piece.PIECE_SETS.TET] = 7,
+		[piece.PIECE_SETS.PENT] = 1,
+	})
 end
 
 function gameScreen:dropPiece()
 	if not self.board.piece then
-		self.board:startPiece(piece.random())
+		self.board:startPiece(self.pieceBag:pick())
 	elseif not self.board:dropPiece() then
 		self.board:setPiece()
 		self.board:clearLines()
@@ -50,7 +56,7 @@ function gameScreen:dropPiece()
 			return
 		end
 
-		self.board:startPiece(piece.random())
+		self.board:startPiece(self.pieceBag:pick())
 	end
 end
 
