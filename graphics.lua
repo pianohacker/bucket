@@ -80,7 +80,8 @@ local B_TOP_CORNERNESS = 0.15 -- Amount that corners are drawn out.
 local B_BOTTOM_RADIUS = 0.21 -- Radius of bottom of board as a proportion of the screen.
 local B_START_ANGLE = -3/4 * math.pi -- The angle of t=1.
 local B_GRID_COLOR = "#181818"
-local B_BG_HIGHLIGHT_COLOR = "#111111"
+local B_BG_PATH_COLOR = "#0B0B0B"
+local B_BG_SHADOW_COLOR = "#181818"
 local B_BG_BLOCKED_COLOR = "#331111"
 local B_GRID_HIGHLIGHT_COLOR = "#888888"
 
@@ -235,24 +236,69 @@ local function hexToRgba(hex)
 	end
 end
 
+function BoardRenderer:drawPieceShadow()
+	local pieceSide = self.board:side(self.board.pieceT)
+
+	local lowestPieceR = {}
+	local minPieceT = 1/0
+	local maxPieceT = -1/0
+
+	for t, r in self.board:iterPieceSquares() do
+		if not lowestPieceR[t] or r < lowestPieceR[t] then
+			lowestPieceR[t] = r
+		end
+
+		if t < minPieceT then minPieceT = t end
+		if t > maxPieceT then maxPieceT = t end
+	end
+
+	local highestFallenPieceR = {}
+	local fallenPieceR = self.board.pieceR
+
+	while not self.board:pieceWouldCollide(self.board.pieceT, fallenPieceR - 1) do
+		fallenPieceR = fallenPieceR - 1
+	end
+
+	love.graphics.setColor(hexToRgba(B_BG_SHADOW_COLOR))
+	for t, r in self.board:iterPieceSquares(self.board.pieceT, fallenPieceR) do
+		if not highestFallenPieceR[t] or r > highestFallenPieceR[t] then
+			highestFallenPieceR[t] = r
+		end
+		self:drawSquare(t, r)
+	end
+
+	love.graphics.setColor(hexToRgba(B_BG_PATH_COLOR))
+	for t = minPieceT,maxPieceT do
+		for r = lowestPieceR[t] - 1, highestFallenPieceR[t] + 1, -1 do
+			self:drawSquare(t, r)
+		end
+	end
+end
+
 function BoardRenderer:updateBackgroundGraphics()
 	self.backgroundCanvas = love.graphics.newCanvas()
 	love.graphics.setCanvas(self.backgroundCanvas)
 
-	love.graphics.setColor(hexToRgba(B_BG_HIGHLIGHT_COLOR))
-	if self.board.piece and self.board.pieceR - self.board.piece.height >= 0 then
-		self:drawSide(self.board:side(self.board.pieceT))
-	end
+	if true then
+		if self.board.piece then
+			self:drawPieceShadow()
+		end
+	else
+		love.graphics.setColor(hexToRgba(B_BG_PATH_COLOR))
+		if self.board.piece and self.board.pieceR - self.board.piece.height >= 0 then
+			self:drawSide(self.board:side(self.board.pieceT))
+		end
 
-	love.graphics.polygon(
-		'fill',
-		unpackEach(
-			self:bottomGridPoint(1, 1),
-			self:bottomGridPoint(self.board.width + 1, 1),
-			self:bottomGridPoint(self.board.width + 1, self.board.width + 1),
-			self:bottomGridPoint(1, self.board.width + 1)
+		love.graphics.polygon(
+			'fill',
+			unpackEach(
+				self:bottomGridPoint(1, 1),
+				self:bottomGridPoint(self.board.width + 1, 1),
+				self:bottomGridPoint(self.board.width + 1, self.board.width + 1),
+				self:bottomGridPoint(1, self.board.width + 1)
+			)
 		)
-	)
+	end
 
 	love.graphics.setColor(hexToRgba(B_BG_BLOCKED_COLOR))
 	for side = 1,4 do
@@ -267,7 +313,7 @@ end
 function BoardRenderer:drawSquareGraphics()
 	for t, r, color in self.board:iterOccupiedSquares() do
 		love.graphics.setColor(hexToRgba(color .. "99"))
-		self:drawSquare(t, r, self.gridGraphics)
+		self:drawSquare(t, r)
 	end
 end
 
@@ -362,7 +408,7 @@ function BoardRenderer:updatePieceGraphics()
 
 	love.graphics.setColor(hexToRgba(self.board.piece.color))
 	for t, r in self.board:iterPieceSquares() do
-		self:drawSquare(t, r, self.pieceGraphics)
+		self:drawSquare(t, r)
 	end
 
 	love.graphics.setCanvas()

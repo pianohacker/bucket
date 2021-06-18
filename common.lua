@@ -133,6 +133,22 @@ function list:shuffle()
 	end
 end
 
+function list:reverse()
+	for i = 1,math.floor(#self/2) do
+		local j = #self - i + 1
+
+		local x = self[i]
+		self[i] = self[j]
+		self[j] = x
+	end
+end
+
+function list:extend(t)
+	for _, x in ipairs(t) do
+		self:insert(x)
+	end
+end
+
 grid = object:new()
 
 local checkedGridColumn = {}

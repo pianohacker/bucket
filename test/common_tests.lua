@@ -7,11 +7,6 @@
 local common = require("common")
 local lu = require('luaunit.luaunit')
 
-notion("list:all returns true only if all values truthy", function()
-	check(common.list:from({false, true, false}):all()):is(false)
-	check(common.list:from({true, true, true}):all()):is(true)
-end)
-
 notion("list:fromTable can build a disconnected list from a table", function()
 	local reference = common.list:new()
 	reference:insert(4)
@@ -26,6 +21,35 @@ notion("list:fromTable can build a disconnected list from a table", function()
 	source[4] = nil
 
 	lu.assertEquals(common.list:fromTable({4, 3, 1, 2}), reference)
+end)
+
+notion("list:all returns true only if all values truthy", function()
+	check(common.list:fromTable({false, true, false}):all()):is(false)
+	check(common.list:fromTable({true, true, true}):all()):is(true)
+end)
+
+notion("list:reverse reverses the list in place", function()
+	local real = common.list:fromTable({1, 2, 3, 4, 5})
+	real:reverse()
+	lu.assertEquals(real, common.list:fromTable({5, 4, 3, 2, 1}))
+
+	real = common.list:fromTable({1, 2, 3, 4, 5, 6})
+	real:reverse()
+	lu.assertEquals(real, common.list:fromTable({6, 5, 4, 3, 2, 1}))
+
+	real = common.list:fromTable({})
+	real:reverse()
+	lu.assertEquals(real, common.list:fromTable({}))
+end)
+
+notion("list:extend adds elements to a list in place", function()
+	local real = common.list:fromTable({1, 2, 3})
+	real:extend({4, 5})
+	lu.assertEquals(real, common.list:fromTable({1, 2, 3, 4, 5}))
+
+	real = common.list:fromTable({1, 2})
+	real:extend(common.list:fromTable({3, 4, 5}))
+	lu.assertEquals(real, common.list:fromTable({1, 2, 3, 4, 5}))
 end)
 
 notion("grid starts out cleared", function()
