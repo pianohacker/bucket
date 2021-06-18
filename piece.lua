@@ -354,9 +354,19 @@ function MultiBag:init(valueBags)
 end
 
 function MultiBag:pick()
+	if self.peeked then
+		return self.peeked
+	end
+
 	local setIndex = self.setIndexBag:pick()
 
 	return self.valueBags[setIndex]:pick()
+end
+
+function MultiBag:peek()
+	self.peeked = self:pick()
+
+	return self.peeked
 end
 
 module("piece")

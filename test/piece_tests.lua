@@ -192,3 +192,30 @@ notion("piece MultiBag can have a weight longer than a set's weight", function()
 		lu.assertNotEquals(bag:pick(), nil)
 	end
 end)
+
+notion("piece MultiBag can peek at the next piece", function()
+	local bag = piece.MultiBag:new({
+		[{1,4,7,10,13}] = 4,
+		[{2,5,8,11,14}] = 5,
+		[{3,6,9,12,15}] = 2,
+	})
+
+	local peeked = bag:peek()
+	local picked = bag:pick()
+	lu.assertEquals(peeked, picked)
+end)
+
+notion("piece MultiBag peeking only looks one forward", function()
+	local bag = piece.MultiBag:new({
+		[{1,4,7,10,13}] = 4,
+		[{2,5,8,11,14}] = 5,
+		[{3,6,9,12,15}] = 2,
+	})
+
+	local firstPeeked = bag:peek()
+	local secondPeeked = bag:peek()
+	local picked = bag:pick()
+
+	lu.assertEquals(firstPeeked, secondPeeked)
+	lu.assertEquals(firstPeeked, picked)
+end)
