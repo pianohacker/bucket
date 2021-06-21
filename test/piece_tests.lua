@@ -219,3 +219,17 @@ notion("piece MultiBag peeking only looks one forward", function()
 	lu.assertEquals(firstPeeked, secondPeeked)
 	lu.assertEquals(firstPeeked, picked)
 end)
+
+notion("piece MultiBag peeking does not interfere with picking", function()
+	local bag = piece.MultiBag:new({
+		[{1,4,7,10,13}] = 4,
+		[{2,5,8,11,14}] = 5,
+		[{3,6,9,12,15}] = 2,
+	})
+
+	bag:peek()
+	local firstPicked = bag:pick()
+	local secondPicked = bag:pick()
+
+	lu.assertNotEquals(firstPicked, secondPicked)
+end)

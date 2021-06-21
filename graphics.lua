@@ -14,51 +14,6 @@ end
 
 local MIN_ASPECT = 1.6
 
-local lastFullWidth
-local lastFullHeight
-local lastLayout
-local function getLayout()
-	local fullWidth, fullHeight = love.graphics.getDimensions()
-
-	if fullWidth ~= lastFullWidth or fullHeight ~= lastFullHeight then
-		lastFullWidth, lastFullHeight = fullWidth, fullWidth
-
-		local width, height, shape
-		if fullWidth > fullHeight then
-			shape = 'wide'
-			if MIN_ASPECT * fullHeight < fullWidth then
-				width = fullHeight * MIN_ASPECT
-				height = fullHeight
-			else
-				width = fullWidth
-				height = fullWidth / MIN_ASPECT
-			end
-		else
-			shape = 'tall'
-			if MIN_ASPECT * fullWidth < fullHeight then
-				width = fullWidth
-				height = fullWidth * MIN_ASPECT
-			else
-				width = fullHeight / MIN_ASPECT
-				height = fullHeight
-			end
-		end
-
-		lastLayout = {
-			cx = fullWidth/2,
-			cy = fullHeight/2,
-			fullWidth = fullWidth,
-			fullHeight = fullHeight,
-			smallest = math.min(width, height),
-			width = width,
-			height = height,
-			shape = shape,
-		}
-	end
-
-	return lastLayout
-end
-
 local function unpackEachv(input)
 	local result = common.list:new()
 
@@ -75,6 +30,69 @@ local function unpackEach(...)
 	return unpackEachv({...})
 end
 
+local RendererLayout = common.object:new()
+
+function RendererLayout:pct(p)
+	return self.smallest * p / 100
+end
+
+local Renderer = common.object:new()
+
+function Renderer:init()
+	self.fontDescriptions = self.fontDescriptions or {}
+	self.fonts = {}
+
+	self:resize()
+end
+
+function Renderer:updateLayout()
+	local fullWidth, fullHeight = love.graphics.getDimensions()
+
+	local width, height, shape
+	if fullWidth > fullHeight then
+		shape = 'wide'
+		if MIN_ASPECT * fullHeight < fullWidth then
+			width = fullHeight * MIN_ASPECT
+			height = fullHeight
+		else
+			width = fullWidth
+			height = fullWidth / MIN_ASPECT
+		end
+	else
+		shape = 'tall'
+		if MIN_ASPECT * fullWidth < fullHeight then
+			width = fullWidth
+			height = fullWidth * MIN_ASPECT
+		else
+			width = fullHeight / MIN_ASPECT
+			height = fullHeight
+		end
+	end
+
+	self.layout = RendererLayout:from({
+		cx = fullWidth/2,
+		cy = fullHeight/2,
+		fullWidth = fullWidth,
+		fullHeight = fullHeight,
+		smallest = math.min(width, height),
+		width = width,
+		height = height,
+		shape = shape,
+	})
+end
+
+function Renderer:resize()
+	self:updateLayout()
+
+	local l = self.layout
+
+	for key, description in pairs(self.fontDescriptions) do
+		local path, relSize = unpack(description)
+
+		self.fonts[key] = love.graphics.newFont(path, l:pct(relSize))
+	end
+end
+
 local B_TOP_RADIUS = 0.4 -- Radius of outside of board as a proportion of the screen.
 local B_TOP_CORNERNESS = 0.15 -- Amount that corners are drawn out.
 local B_BOTTOM_RADIUS = 0.21 -- Radius of bottom of board as a proportion of the screen.
@@ -85,16 +103,20 @@ local B_BG_SHADOW_COLOR = "#181818"
 local B_BG_BLOCKED_COLOR = "#331111"
 local B_GRID_HIGHLIGHT_COLOR = "#888888"
 
-BoardRenderer = common.object:new()
+BoardRenderer = Renderer:new()
 
 function BoardRenderer:init(board) 
 	self.board = board
 	self.lastDrawnPieceGeneration = 0
 	self.lastDrawnGridGeneration = 0
+
+	Renderer.init(self)
 end
 
 function BoardRenderer:resize()
 	self:updateGrid()
+
+	Renderer.resize(self)
 end
 
 function BoardRenderer:updateGrid()
@@ -102,7 +124,7 @@ function BoardRenderer:updateGrid()
 	self.lastDrawnPieceGeneration = 0
 
 	-- Scale to window
-	local l = getLayout()
+	local l = self.layout
 
 	-- Calculate top of board
 	self.upperGridPositions = common.grid:new(self.board.circumf, self.board.depth)
@@ -158,7 +180,7 @@ function BoardRenderer:updateGrid()
 end
 
 function BoardRenderer:bottomGridPoint(x, y)
-	local l = getLayout()
+	local l = self.layout
 
 	return {
 		l.cx + self.bottom_radius * (2 * ((x - 1) / self.board.width) - 1),
@@ -439,59 +461,107 @@ function BoardRenderer:draw()
 	love.graphics.setBlendMode('alpha')
 end
 
-StartRenderer = common.object:new()
+PieceHintRenderer = Renderer:new()
 
-function StartRenderer:init()
-	self:resize()
+function PieceHintRenderer:init(getNextPiece)
+	self.getNextPiece = getNextPiece
+
+	self.fontDescriptions = {
+		main = {"fonts/AlegreyaSansSC-Light.ttf", 5},
+	}
+
+	Renderer.init(self)
 end
 
-function StartRenderer:resize()
-	local l = getLayout()
+function PieceHintRenderer:draw()
+	local l = self.layout
 
-	self.headerFont = love.graphics.newFont("fonts/AlegreyaSansSC-Light.ttf", l.smallest * .1)
-	self.startFont = love.graphics.newFont("fonts/AlegreyaSansSC-Light.ttf", l.smallest * .05)
+	local width = l:pct(15)
+	local hintX = l.fullWidth - l:pct(5) - width
+
+	love.graphics.printf(
+		"Next",
+		self.fonts.main,
+		hintX,
+		l:pct(3),
+		width,
+		"center"
+	)
+
+	local p = self.getNextPiece()
+	local pieceY = l:pct(9)
+	local gridSize = width / 4
+	local xPadding = gridSize * ((4 - p.width) / 2)
+
+	love.graphics.setColor(hexToRgba(p.color .. 'bb'))
+	for x = 1,p.width do
+		for y = 1,p.height do
+			if p[x + p.xOffset][y + p.yOffset] then
+				love.graphics.rectangle(
+					'fill',
+					hintX + xPadding + (x - 1) * gridSize,
+					pieceY + (y - 1) * gridSize,
+					gridSize - 1,
+					gridSize - 1
+				)
+			end
+		end
+	end
+end
+
+StartRenderer = Renderer:new()
+
+function StartRenderer:init()
+	self.fontDescriptions = {
+		header = {"fonts/AlegreyaSansSC-Light.ttf", 10},
+		start = {"fonts/AlegreyaSansSC-Light.ttf", 5},
+	}
+
+	Renderer.init(self)
 end
 
 function StartRenderer:draw()
-	local l = getLayout()
+	local l = self.layout
 
 	love.graphics.printf(
 		"Bucket",
-		self.headerFont,
-		l.cx - l.smallest/2,
-		l.cy - l.smallest * .2,
+		self.fonts.header,
+		l.cx - l:pct(50),
+		l.cy - l:pct(20),
 		l.smallest,
 		"center"
 	)
 
 	love.graphics.printf(
 		"Press Enter or Space to start",
-		self.startFont,
-		l.cx - l.smallest/2,
-		l.cy + l.smallest * .1,
+		self.fonts.start,
+		l.cx - l:pct(50),
+		l.cy + l:pct(10),
 		l.smallest,
 		"center"
 	)
 end
 
-LossRenderer = common.object:new()
+LossRenderer = Renderer:new()
 
 function LossRenderer:init(gameScreen)
 	self.gameScreen = gameScreen
 
-	self:resize()
+	self.fontDescriptions = {
+		main = {"fonts/AlegreyaSansSC-Light.ttf", 10},
+	}
+
+	Renderer.init(self)
 end
 
 function LossRenderer:resize()
 	self.gameScreen:resize()
 
-	local l = getLayout()
-
-	self.font = love.graphics.newFont("fonts/AlegreyaSansSC-Light.ttf", l.smallest * .1)
+	Renderer.resize(self)
 end
 
 function LossRenderer:draw()
-	local l = getLayout()
+	local l = self.layout
 
 	self.gameScreen:draw()
 
@@ -507,9 +577,9 @@ function LossRenderer:draw()
 	love.graphics.setColor(1, 1, 1)
 	love.graphics.printf(
 		"Game Over",
-		self.font,
-		l.cx - l.smallest/2,
-		l.cy - l.smallest * .05,
+		self.fonts.main,
+		l.cx - l:pct(50),
+		l.cy - l:pct(5),
 		l.smallest,
 		"center"
 	)

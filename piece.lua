@@ -355,7 +355,9 @@ end
 
 function MultiBag:pick()
 	if self.peeked then
-		return self.peeked
+		local x = self.peeked
+		self.peeked = nil
+		return x
 	end
 
 	local setIndex = self.setIndexBag:pick()
@@ -364,7 +366,9 @@ function MultiBag:pick()
 end
 
 function MultiBag:peek()
-	self.peeked = self:pick()
+	if not self.peeked then
+		self.peeked = self:pick()
+	end
 
 	return self.peeked
 end

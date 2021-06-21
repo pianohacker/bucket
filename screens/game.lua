@@ -28,6 +28,9 @@ function gameScreen:init()
 
 	self.renderers = {
 		graphics.BoardRenderer:new(self.board),
+		graphics.PieceHintRenderer:new(
+			function() return self.pieceBag:peek() end
+		),
 	}
 
 	self.pieceBag = piece.MultiBag:new({
