@@ -467,7 +467,7 @@ function PieceHintRenderer:init(getNextPiece)
 	self.getNextPiece = getNextPiece
 
 	self.fontDescriptions = {
-		main = {"fonts/AlegreyaSansSC-Light.ttf", 5},
+		main = {"fonts/AlegreyaSansSC-Medium.ttf", 5},
 	}
 
 	Renderer.init(self)
@@ -507,6 +507,43 @@ function PieceHintRenderer:draw()
 			end
 		end
 	end
+end
+
+ScoreRenderer = Renderer:new()
+
+function ScoreRenderer:init(getScore)
+	self.getScore = getScore
+
+	self.fontDescriptions = {
+		title = {"fonts/AlegreyaSansSC-Medium.ttf", 5},
+		main = {"fonts/AlegreyaSansSC-Light.ttf", 4},
+	}
+
+	Renderer.init(self)
+end
+
+function ScoreRenderer:draw()
+	local l = self.layout
+
+	local width = l:pct(15)
+
+	love.graphics.setColor(1, 1, 1, 1)
+	love.graphics.printf(
+		"Score",
+		self.fonts.title,
+		l:pct(5),
+		l:pct(3),
+		width,
+		"center"
+	)
+	love.graphics.printf(
+		self.getScore(),
+		self.fonts.main,
+		l:pct(5),
+		l:pct(8),
+		width,
+		"center"
+	)
 end
 
 StartRenderer = Renderer:new()

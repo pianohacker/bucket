@@ -13,6 +13,7 @@ local baseScreen = require "screens/base"
 local lossScreen = require "screens/loss"
 
 local DROP_INTERVAL = .5
+local BASE_SCORE = 10
 
 local gameScreen = baseScreen:new()
 
@@ -25,11 +26,15 @@ function gameScreen:init()
 		depth = 10
 	}
 	self.lost = false
+	self.score = 0
 
 	self.renderers = {
 		graphics.BoardRenderer:new(self.board),
 		graphics.PieceHintRenderer:new(
 			function() return self.pieceBag:peek() end
+		),
+		graphics.ScoreRenderer:new(
+			function() return self.score end
 		),
 	}
 
@@ -40,12 +45,26 @@ function gameScreen:init()
 	})
 end
 
+function gameScreen:updateScore(horizCleared, vertCleared)
+	local horizAndVerticalBonus = 0
+	if horizCleared ~= 0 and vertCleared ~= 0 then
+		horizAndVerticalBonus = 1
+	end
+
+	if horizCleared == 0 and vertCleared == 0 then
+		return
+	end
+
+	self.score = self.score + BASE_SCORE * 2 ^ (horizCleared + vertCleared + horizAndVerticalBonus - 1)
+end
+
 function gameScreen:dropPiece()
 	if not self.board.piece then
 		self.board:startPiece(self.pieceBag:pick())
 	elseif not self.board:dropPiece() then
 		self.board:setPiece()
-		self.board:clearLines()
+		local horizCleared, vertCleared = self.board:clearLines()
+		self:updateScore(horizCleared, vertCleared)
 
 		local allBlocked = true
 		for side = 1, 4 do

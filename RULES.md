@@ -196,3 +196,10 @@ the blocked wall to the opposite side). Blocked walls are unblocked when they ar
 due to cleared or shifted lines. 
 
 If all four walls are blocked, then the player loses the game.
+
+## Scoring and level progression
+
+Points are scored by clearing lines. Exponentially more points are awarded for clearing more lines
+at once, with even more points awarded for clearing vertical and horizontal lines at the same time.
+
+
