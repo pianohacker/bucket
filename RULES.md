@@ -71,8 +71,9 @@ The rest of this section explains each of these in depth.
 
 ### Piece creation
 
-Pieces are chosen completely at random from all possible triominoes and tetrominos. (Later: random
-bag system, duominoes/pentominoes, and piece selection by difficulty.)
+Pieces are chosen from triominos, tetrominos, and pentominos. Each category is shuffled then picked
+from in order, then reshuffled once every piece in that category is exhausted. This ensures that no
+piece will be drawn more than twice in a row. The category to draw a piece from is chosen randomly with weights determined by the difficulty level.
 
 The piece is then placed at the top of the wall at a random spot such that the piece is completely
 on one side of the wall (not overlapping a corner). (Later: random rotation.)

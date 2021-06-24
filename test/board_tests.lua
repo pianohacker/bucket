@@ -541,6 +541,41 @@ notion("clearLines clears and shifts squares on walls", function()
 	]])
 end)
 
+notion("clearLines returns the number of lines cleared in each direction", function()
+	local b = boardFrom [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█    █ █    █
+		█    ███    █
+		█▄▄▄ ▀ ▀ ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]]
+	check(b:clearLines()):is(0, 2)
+
+	b = boardFrom [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█   ▄▄▄▄▄   █
+		█   ▄██▄▄   █
+		█▄▄▄     ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]]
+	check(b:clearLines()):is(2, 0)
+
+	b = boardFrom [[
+		   █▀▀▀▀▀█
+		▄▄▄█     █▄▄▄
+		█     █     █
+		█   ▀▀█▀▀   █
+		█▄▄▄  ▀  ▄▄▄█
+		   █     █
+		   ▀▀▀▀▀▀▀
+	]]
+	check(b:clearLines()):is(1, 1)
+end)
+
 notion("isSideBlocked detects squares anywhere in side", function()
 	local b = boardFrom [[
 		   █▀▀█▀▀█
