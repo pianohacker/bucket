@@ -95,7 +95,7 @@ end
 
 local B_TOP_RADIUS = 0.4 -- Radius of outside of board as a proportion of the screen.
 local B_TOP_CORNERNESS = 0.15 -- Amount that corners are drawn out.
-local B_BOTTOM_RADIUS = 0.21 -- Radius of bottom of board as a proportion of the screen.
+local B_BOTTOM_RADIUS = 0.18 -- Radius of bottom of board as a proportion of the screen.
 local B_START_ANGLE = -3/4 * math.pi -- The angle of t=1.
 local B_GRID_COLOR = "#181818"
 local B_BG_PATH_COLOR = "#0B0B0B"

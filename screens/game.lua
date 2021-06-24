@@ -21,8 +21,8 @@ function gameScreen:init()
 	self.dropInterval:increment(DROP_INTERVAL)
 
 	self.board = board:new {
-		width = 8,
-		depth = 6
+		width = 10,
+		depth = 10
 	}
 	self.lost = false
 
