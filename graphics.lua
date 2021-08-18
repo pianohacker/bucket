@@ -511,8 +511,10 @@ end
 
 ScoreRenderer = Renderer:new()
 
-function ScoreRenderer:init(getScore)
+function ScoreRenderer:init(getLevel, getScore, getClearedLines)
+	self.getLevel = getLevel
 	self.getScore = getScore
+	self.getClearedLines = getClearedLines
 
 	self.fontDescriptions = {
 		title = {"fonts/AlegreyaSansSC-Medium.ttf", 5},
@@ -528,8 +530,9 @@ function ScoreRenderer:draw()
 	local width = l:pct(15)
 
 	love.graphics.setColor(1, 1, 1, 1)
+
 	love.graphics.printf(
-		"Score",
+		"Level",
 		self.fonts.title,
 		l:pct(5),
 		l:pct(3),
@@ -537,10 +540,44 @@ function ScoreRenderer:draw()
 		"center"
 	)
 	love.graphics.printf(
-		self.getScore(),
+		self.getLevel(),
 		self.fonts.main,
 		l:pct(5),
 		l:pct(8),
+		width,
+		"center"
+	)
+
+	love.graphics.printf(
+		"Score",
+		self.fonts.title,
+		l:pct(5),
+		l:pct(12),
+		width,
+		"center"
+	)
+	love.graphics.printf(
+		self.getScore(),
+		self.fonts.main,
+		l:pct(5),
+		l:pct(17),
+		width,
+		"center"
+	)
+
+	love.graphics.printf(
+		"Lines",
+		self.fonts.title,
+		l:pct(5),
+		l:pct(21),
+		width,
+		"center"
+	)
+	love.graphics.printf(
+		self.getClearedLines(),
+		self.fonts.main,
+		l:pct(5),
+		l:pct(25),
 		width,
 		"center"
 	)

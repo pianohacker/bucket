@@ -257,6 +257,10 @@ function interval:init(length)
 	self.elapsed = 0
 end
 
+function interval:resize(length)
+	self.length = length
+end
+
 function interval:increment(dt)
 	if self.stopped then return false end
 

@@ -171,3 +171,17 @@ notion("interval can be reset", function()
 	i:increment(.8)
 	check(i:firing()):is(true)
 end)
+
+notion("interval can be resized", function()
+	local i = common.interval:new(.8)
+	i:increment(.7)
+
+	check(i:firing()):is(false)
+	i:resize(.6)
+	check(i:firing()):is(true)
+
+	i:reset()
+	check(i:firing()):is(false)
+	i:increment(.9)
+	check(i:firing()):is(true)
+end)

@@ -202,4 +202,4 @@ If all four walls are blocked, then the player loses the game.
 Points are scored by clearing lines. Exponentially more points are awarded for clearing more lines
 at once, with even more points awarded for clearing vertical and horizontal lines at the same time.
 
-
+After every 10 cleared lines, the level is advanced. This causes pieces to drop ever more quickly.
