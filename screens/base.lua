@@ -20,4 +20,11 @@ function baseScreen:draw()
 	end
 end
 
+
+function baseScreen:update(dt)
+	for _, interval in pairs(self.intervals) do
+		interval:increment(dt)
+	end
+end
+
 return baseScreen
