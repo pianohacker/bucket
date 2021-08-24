@@ -185,3 +185,24 @@ notion("interval can be resized", function()
 	i:increment(.9)
 	check(i:firing()):is(true)
 end)
+
+notion("linearTransition interpolates between bounds", function()
+	local i = common.linearTransition:new(.5)
+	check(i:range(0, 100)):is(0)
+
+	i:increment(.1)
+	check(i:range(0, 100)):is(20)
+
+	i:increment(.15)
+	check(i:range(0, 100)):is(50)
+
+	i:increment(.25)
+	check(i:range(0, 100)):is(100)
+end)
+
+notion("linearTransition clamps at end", function()
+	local i = common.linearTransition:new(.5)
+
+	i:increment(.7)
+	check(i:range(0, 100)):is(100)
+end)

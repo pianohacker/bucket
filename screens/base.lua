@@ -22,8 +22,8 @@ end
 
 
 function baseScreen:update(dt)
-	for _, interval in pairs(self.intervals) do
-		interval:increment(dt)
+	for _, timer in pairs(self.timers) do
+		timer:increment(dt)
 	end
 end
 

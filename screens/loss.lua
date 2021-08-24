@@ -12,12 +12,20 @@ local baseScreen = require "screens/base"
 local lossScreen = baseScreen:new()
 
 function lossScreen:init(gameScreen)
+	self.timers = {
+		fadeIn = common.linearTransition:new(1)
+	}
+
 	self.renderers = {
-		graphics.LossRenderer:new(gameScreen),
+		graphics.LossRenderer:new(
+			gameScreen,
+			function() return self.timers.fadeIn:range(0, 1) end
+		),
 	}
 end
 
-function lossScreen:update()
+function lossScreen:update(dt)
+	baseScreen.update(self, dt)
 end
 
 function lossScreen:keypressed(key)

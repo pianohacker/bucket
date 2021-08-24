@@ -31,10 +31,10 @@ end
 local gameScreen = baseScreen:new()
 
 function gameScreen:init()
-	self.intervals = {
+	self.timers = {
 		drop = common.interval:new(dropIntervalForLevel(1))
 	}
-	self.intervals.drop:increment(dropIntervalForLevel(1))
+	self.timers.drop:increment(dropIntervalForLevel(1))
 
 	self.board = board:new {
 		width = 10,
@@ -95,8 +95,8 @@ function gameScreen:dropPiece()
 
 		if math.floor((self.clearedLines + justClearedLines) / LEVEL_ADVANCE_LINES) > math.floor(self.clearedLines / LEVEL_ADVANCE_LINES) then
 			self.level = self.level + 1
-			self.intervals.drop:reset()
-			self.intervals.drop:resize(dropIntervalForLevel(self.level))
+			self.timers.drop:reset()
+			self.timers.drop:resize(dropIntervalForLevel(self.level))
 		end
 
 		local allBlocked = true
@@ -118,7 +118,7 @@ end
 function gameScreen:update(dt)
 	baseScreen.update(self, dt)
 
-	if self.intervals.drop:firing() then
+	if self.timers.drop:firing() then
 		self:dropPiece()
 	end
 end
@@ -129,7 +129,7 @@ function gameScreen:keypressed(key)
 	elseif key == 'a' then
 		self.board:shiftPiece(1)
 	elseif key == 'e' then
-		self.intervals.drop:reset()
+		self.timers.drop:reset()
 		self:dropPiece()
 	elseif key == 'r' then
 		self.board:rotatePiece(-1)

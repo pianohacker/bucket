@@ -294,3 +294,18 @@ end
 function interval:reset()
 	self.elapsed = 0
 end
+
+linearTransition = object:new()
+
+function linearTransition:init(length)
+	self.length = length
+	self.elapsed = 0
+end
+
+function linearTransition:increment(dt)
+	self.elapsed = math.min(self.elapsed + dt, self.length)
+end
+
+function linearTransition:range(min, max)
+	return min + (max - min) * self.elapsed / self.length
+end

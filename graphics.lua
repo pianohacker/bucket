@@ -618,8 +618,9 @@ end
 
 LossRenderer = Renderer:new()
 
-function LossRenderer:init(gameScreen)
+function LossRenderer:init(gameScreen, getOpacity)
 	self.gameScreen = gameScreen
+	self.getOpacity = getOpacity
 
 	self.fontDescriptions = {
 		main = {"fonts/AlegreyaSansSC-Light.ttf", 10},
@@ -639,7 +640,7 @@ function LossRenderer:draw()
 
 	self.gameScreen:draw()
 
-	love.graphics.setColor(0, 0, 0, .9)
+	love.graphics.setColor(0, 0, 0, self.getOpacity())
 	love.graphics.rectangle(
 		'fill',
 		0,
@@ -648,7 +649,7 @@ function LossRenderer:draw()
 		l.fullHeight
 	)
 
-	love.graphics.setColor(1, 1, 1)
+	love.graphics.setColor(1, 1, 1, self.getOpacity())
 	love.graphics.printf(
 		"Game Over",
 		self.fonts.main,
