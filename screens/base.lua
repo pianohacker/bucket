@@ -27,4 +27,13 @@ function baseScreen:update(dt)
 	end
 end
 
+function baseScreen:touchpressed(x, y)
+	for _, button in ipairs(self.touchButtons or {}) do
+		if button:within(x, y) then
+			button:pressed()
+			break
+		end
+	end
+end
+
 return baseScreen

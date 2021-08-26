@@ -206,3 +206,43 @@ notion("linearTransition clamps at end", function()
 	i:increment(.7)
 	check(i:range(0, 100)):is(100)
 end)
+
+notion("button positioned from top-left correctly checks touches", function()
+	local b = common.button:new(.025, .025, .070, .050)
+	b:windowResize(1000, 1000)
+
+	-- Center
+	check(b:within(50, 50)):is(true)
+
+	-- Horizontal edges
+	check(b:within(24, 50)):is(false)
+	check(b:within(25, 50)):is(true)
+	check(b:within(94, 50)):is(true)
+	check(b:within(95, 50)):is(false)
+
+	-- Vertical edges
+	check(b:within(50, 24)):is(false)
+	check(b:within(50, 25)):is(true)
+	check(b:within(50, 74)):is(true)
+	check(b:within(50, 75)):is(false)
+end)
+
+notion("button positioned from bottom-right correctly checks touches", function()
+	local b = common.button:new(-.025, -.05, .07, .1)
+	b:windowResize(1000, 500)
+
+	-- Center
+	check(b:within(940, 450)):is(true)
+
+	-- Horizontal edges
+	check(b:within(904, 450)):is(false)
+	check(b:within(905, 450)):is(true)
+	check(b:within(974, 450)):is(true)
+	check(b:within(975, 450)):is(false)
+
+	-- Vertical edges
+	check(b:within(940, 424)):is(false)
+	check(b:within(940, 425)):is(true)
+	check(b:within(940, 474)):is(true)
+	check(b:within(940, 475)):is(false)
+end)

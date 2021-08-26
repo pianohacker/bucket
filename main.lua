@@ -15,6 +15,7 @@ profilerState = {
 	frame = 0,
 	reportEvery = 240,
 }
+isMobile = love.system.getOS() == 'Android' or love.system.getOS() == 'iOS'
 
 core = {}
 
@@ -66,4 +67,10 @@ end
 
 function love.keypressed(key)
 	screen:keypressed(key)
+end
+
+local common = require('common')
+
+function love.touchpressed(_, x, y, _, _, _)
+	screen:touchpressed(x, y)
 end
