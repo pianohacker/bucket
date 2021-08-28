@@ -4,23 +4,83 @@
 -- License, v. 2.0. If a copy of the MPL was not distributed with this
 -- file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+local common = require "common"
 local cute = require "cute"
 
-local startScreen = require "screens/start"
+local MIN_ASPECT = 1.6
 
-screen = nil
 profilerState = {
 	fpsEnabled = (os.getenv("BUCKET_SHOW_FPS") and true or false),
 	enabled = (os.getenv("BUCKET_PROFILE") and true or false),
 	frame = 0,
 	reportEvery = 240,
 }
-isMobile = love.system.getOS() == 'Android' or love.system.getOS() == 'iOS'
 
-core = {}
+local UiShape = common.object:new()
 
-function core.switchScreen(newScreen)
-	screen = newScreen
+function UiShape:pct(p)
+	return self.smallest * p / 100
+end
+
+-- This is a poor replacement for an actual gravity/anchor system.
+function UiShape:relPctCoords(x, y, width, height)
+	local realX
+	if x < 0 then
+		realX = self.fullWidth - self:pct(-x + width)
+	else
+		realX = self:pct(x)
+	end
+
+	local realY
+	if y < 0 then
+		realY = self.fullHeight - self:pct(-y + width)
+	else
+		realY = self:pct(y)
+	end
+
+	return realX, realY, self:pct(width), self:pct(height)
+end
+
+ui = {
+	isMobile = love.system.getOS() == 'Android' or love.system.getOS() == 'iOS',
+}
+
+function ui:switchScreen(newScreen)
+	ui.screen = newScreen
+end
+
+function ui:updateShape(fullWidth, fullHeight)
+	local width, height, orientation
+	if fullWidth > fullHeight then
+		orientation = 'wide'
+		if MIN_ASPECT * fullHeight < fullWidth then
+			width = fullHeight * MIN_ASPECT
+			height = fullHeight
+		else
+			width = fullWidth
+			height = fullWidth / MIN_ASPECT
+		end
+	else
+		orientation = 'tall'
+		if MIN_ASPECT * fullWidth < fullHeight then
+			width = fullWidth
+			height = fullWidth * MIN_ASPECT
+		else
+			width = fullHeight / MIN_ASPECT
+			height = fullHeight
+		end
+	end
+
+	self.shape = UiShape:from({
+		cx = fullWidth/2,
+		cy = fullHeight/2,
+		fullWidth = fullWidth,
+		fullHeight = fullHeight,
+		smallest = math.min(width, height),
+		width = width,
+		height = height,
+		orientation = orientation,
+	})
 end
 
 function love.load(args)
@@ -35,11 +95,18 @@ function love.load(args)
 
 	love.keyboard.setKeyRepeat(true)
 
-	screen = startScreen:new()
+	local width, height = love.graphics.getDimensions()
+	ui:updateShape(width, height)
+
+	local startScreen = require "screens/start"
+	ui.screen = startScreen:new()
 end
 
 function love.resize()
-	screen:resize()
+	local width, height = love.graphics.getDimensions()
+	ui:updateShape(width, height)
+
+	ui.screen:resize()
 end
 
 function love.draw()
@@ -48,11 +115,11 @@ function love.draw()
 		love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10)
 	end
 
-	screen:draw()
+	ui.screen:draw()
 end
 
 function love.update(dt)
-	screen:update(dt)
+	ui.screen:update(dt)
 
 	if profilerState.enabled then
 		profilerState.frame = profilerState.frame + 1
@@ -66,11 +133,11 @@ function love.update(dt)
 end
 
 function love.keypressed(key)
-	screen:keypressed(key)
+	ui.screen:keypressed(key)
 end
 
 local common = require('common')
 
-function love.touchpressed(_, x, y, _, _, _)
-	screen:touchpressed(x, y)
+function love.mousepressed(x, y)
+	ui.screen:mousepressed(x, y)
 end

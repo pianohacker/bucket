@@ -31,7 +31,7 @@ end
 function lossScreen:keypressed(key)
 	if key == 'space' or key == 'enter' then
 		local gameScreen = require "screens/game"
-		core.switchScreen(gameScreen:new())
+		ui:switchScreen(gameScreen:new())
 	end
 end
 

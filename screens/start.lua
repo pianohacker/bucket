@@ -15,15 +15,32 @@ function startScreen:init()
 	self.renderers = {
 		graphics.StartRenderer:new(),
 	}
+
+	self.keyInputMap = {
+		space = 'START',
+	}
+
+	baseScreen.init(self)
 end
 
-function startScreen:update()
+function startScreen:layout()
+	local s = ui.shape
+
+	self.buttons = {
+		common.button:new(
+			0,
+			0,
+			s.fullWidth,
+			s.fullHeight,
+			function() self:input('START') end
+		),
+	}
 end
 
-function startScreen:keypressed(key)
-	if key == 'space' or key == 'enter' then
+function startScreen:input(input)
+	if input == 'START' then
 		local gameScreen = require "screens/game"
-		core.switchScreen(gameScreen:new())
+		ui:switchScreen(gameScreen:new())
 	end
 end
 

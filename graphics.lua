@@ -12,8 +12,6 @@ local function lerp2(a, b, t)
 	return {b[1] * t + a[1] * (1-t), b[2] * t + a[2] * (1-t)}
 end
 
-local MIN_ASPECT = 1.6
-
 local function unpackEachv(input)
 	local result = common.list:new()
 
@@ -30,12 +28,6 @@ local function unpackEach(...)
 	return unpackEachv({...})
 end
 
-local RendererLayout = common.object:new()
-
-function RendererLayout:pct(p)
-	return self.smallest * p / 100
-end
-
 local Renderer = common.object:new()
 
 function Renderer:init()
@@ -45,51 +37,13 @@ function Renderer:init()
 	self:resize()
 end
 
-function Renderer:updateLayout()
-	local fullWidth, fullHeight = love.graphics.getDimensions()
-
-	local width, height, shape
-	if fullWidth > fullHeight then
-		shape = 'wide'
-		if MIN_ASPECT * fullHeight < fullWidth then
-			width = fullHeight * MIN_ASPECT
-			height = fullHeight
-		else
-			width = fullWidth
-			height = fullWidth / MIN_ASPECT
-		end
-	else
-		shape = 'tall'
-		if MIN_ASPECT * fullWidth < fullHeight then
-			width = fullWidth
-			height = fullWidth * MIN_ASPECT
-		else
-			width = fullHeight / MIN_ASPECT
-			height = fullHeight
-		end
-	end
-
-	self.layout = RendererLayout:from({
-		cx = fullWidth/2,
-		cy = fullHeight/2,
-		fullWidth = fullWidth,
-		fullHeight = fullHeight,
-		smallest = math.min(width, height),
-		width = width,
-		height = height,
-		shape = shape,
-	})
-end
-
 function Renderer:resize()
-	self:updateLayout()
-
-	local l = self.layout
+	local s = ui.shape
 
 	for key, description in pairs(self.fontDescriptions) do
 		local path, relSize = unpack(description)
 
-		self.fonts[key] = love.graphics.newFont(path, l:pct(relSize))
+		self.fonts[key] = love.graphics.newFont(path, s:pct(relSize))
 	end
 end
 
@@ -114,9 +68,9 @@ function BoardRenderer:init(board)
 end
 
 function BoardRenderer:resize()
-	self:updateGrid()
-
 	Renderer.resize(self)
+
+	self:updateGrid()
 end
 
 function BoardRenderer:updateGrid()
@@ -124,24 +78,24 @@ function BoardRenderer:updateGrid()
 	self.lastDrawnPieceGeneration = 0
 
 	-- Scale to window
-	local l = self.layout
+	local s = ui.shape
 
 	-- Calculate top of board
 	self.upperGridPositions = common.grid:new(self.board.circumf, self.board.depth)
-	local top_radius = l.smallest * (B_TOP_RADIUS + B_TOP_CORNERNESS)
+	local top_radius = s.smallest * (B_TOP_RADIUS + B_TOP_CORNERNESS)
 	local b_cornerness = top_radius * B_TOP_CORNERNESS
 	local step = 2 * math.pi / self.board.circumf
 	for t=1,self.board.circumf do
 		local angle = (t - 1) * step + B_START_ANGLE
 		local cornerness = (math.abs(math.sin((t - 1) * math.pi / self.board.width))) * b_cornerness
 		self.upperGridPositions[t][self.board.depth] = {
-			l.cx + math.cos(angle) * (top_radius - cornerness),
-			l.cy + math.sin(angle) * (top_radius - cornerness)
+			s.cx + math.cos(angle) * (top_radius - cornerness),
+			s.cy + math.sin(angle) * (top_radius - cornerness)
 		}
 	end
 
 	-- Calculate bottom of board
-	self.bottom_radius = l.smallest * B_BOTTOM_RADIUS
+	self.bottom_radius = s.smallest * B_BOTTOM_RADIUS
 
 	local t = 1
 	-- North
@@ -180,11 +134,11 @@ function BoardRenderer:updateGrid()
 end
 
 function BoardRenderer:bottomGridPoint(x, y)
-	local l = self.layout
+	local s = ui.shape
 
 	return {
-		l.cx + self.bottom_radius * (2 * ((x - 1) / self.board.width) - 1),
-		l.cy + self.bottom_radius * (2 * ((y - 1) / self.board.width) - 1),
+		s.cx + self.bottom_radius * (2 * ((x - 1) / self.board.width) - 1),
+		s.cy + self.bottom_radius * (2 * ((y - 1) / self.board.width) - 1),
 	}
 end
 
@@ -474,22 +428,22 @@ function PieceHintRenderer:init(getNextPiece)
 end
 
 function PieceHintRenderer:draw()
-	local l = self.layout
+	local s = ui.shape
 
-	local width = l:pct(15)
-	local hintX = l.fullWidth - l:pct(5) - width
+	local width = s:pct(15)
+	local hintX = s.fullWidth - s:pct(5) - width
 
 	love.graphics.printf(
 		"Next",
 		self.fonts.main,
 		hintX,
-		l:pct(3),
+		s:pct(3),
 		width,
 		"center"
 	)
 
 	local p = self.getNextPiece()
-	local pieceY = l:pct(9)
+	local pieceY = s:pct(9)
 	local gridSize = width / 4
 	local xPadding = gridSize * ((4 - p.width) / 2)
 
@@ -525,25 +479,25 @@ function ScoreRenderer:init(getLevel, getScore, getClearedLines)
 end
 
 function ScoreRenderer:draw()
-	local l = self.layout
+	local s = ui.shape
 
-	local width = l:pct(15)
+	local width = s:pct(15)
 
 	love.graphics.setColor(1, 1, 1, 1)
 
 	love.graphics.printf(
 		"Level",
 		self.fonts.title,
-		l:pct(5),
-		l:pct(3),
+		s:pct(5),
+		s:pct(3),
 		width,
 		"center"
 	)
 	love.graphics.printf(
 		self.getLevel(),
 		self.fonts.main,
-		l:pct(5),
-		l:pct(8),
+		s:pct(5),
+		s:pct(8),
 		width,
 		"center"
 	)
@@ -551,16 +505,16 @@ function ScoreRenderer:draw()
 	love.graphics.printf(
 		"Score",
 		self.fonts.title,
-		l:pct(5),
-		l:pct(12),
+		s:pct(5),
+		s:pct(12),
 		width,
 		"center"
 	)
 	love.graphics.printf(
 		self.getScore(),
 		self.fonts.main,
-		l:pct(5),
-		l:pct(17),
+		s:pct(5),
+		s:pct(17),
 		width,
 		"center"
 	)
@@ -568,16 +522,16 @@ function ScoreRenderer:draw()
 	love.graphics.printf(
 		"Lines",
 		self.fonts.title,
-		l:pct(5),
-		l:pct(21),
+		s:pct(5),
+		s:pct(21),
 		width,
 		"center"
 	)
 	love.graphics.printf(
 		self.getClearedLines(),
 		self.fonts.main,
-		l:pct(5),
-		l:pct(25),
+		s:pct(5),
+		s:pct(25),
 		width,
 		"center"
 	)
@@ -595,23 +549,23 @@ function StartRenderer:init()
 end
 
 function StartRenderer:draw()
-	local l = self.layout
+	local s = ui.shape
 
 	love.graphics.printf(
 		"Bucket",
 		self.fonts.header,
-		l.cx - l:pct(50),
-		l.cy - l:pct(20),
-		l.smallest,
+		s.cx - s:pct(50),
+		s.cy - s:pct(20),
+		s.smallest,
 		"center"
 	)
 
 	love.graphics.printf(
-		"Press Enter or Space to start",
+		"Press Space to start",
 		self.fonts.start,
-		l.cx - l:pct(50),
-		l.cy + l:pct(10),
-		l.smallest,
+		s.cx - s:pct(50),
+		s.cy + s:pct(10),
+		s.smallest,
 		"center"
 	)
 end
@@ -630,13 +584,13 @@ function LossRenderer:init(gameScreen, getOpacity)
 end
 
 function LossRenderer:resize()
-	self.gameScreen:resize()
-
 	Renderer.resize(self)
+
+	self.gameScreen:resize()
 end
 
 function LossRenderer:draw()
-	local l = self.layout
+	local s = ui.shape
 
 	self.gameScreen:draw()
 
@@ -645,17 +599,36 @@ function LossRenderer:draw()
 		'fill',
 		0,
 		0,
-		l.fullWidth,
-		l.fullHeight
+		s.fullWidth,
+		s.fullHeight
 	)
 
 	love.graphics.setColor(1, 1, 1, self.getOpacity())
 	love.graphics.printf(
 		"Game Over",
 		self.fonts.main,
-		l.cx - l:pct(50),
-		l.cy - l:pct(5),
-		l.smallest,
+		s.cx - s:pct(50),
+		s.cy - s:pct(5),
+		s.smallest,
 		"center"
 	)
+end
+
+ButtonsRenderer = Renderer:new()
+
+function ButtonsRenderer:init(getButtons)
+	self.getButtons = getButtons
+end
+
+function ButtonsRenderer:draw()
+	love.graphics.setColor(1, 1, 1, 1)
+	for _, button in ipairs(self.getButtons()) do
+		love.graphics.rectangle(
+			'fill',
+			button.x,
+			button.y,
+			button.width,
+			button.height
+		)
+	end
 end

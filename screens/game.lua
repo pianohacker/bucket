@@ -55,6 +55,9 @@ function gameScreen:init()
 			function() return self.score end,
 			function() return self.clearedLines end
 		),
+		graphics.ButtonsRenderer:new(
+			function() return self.buttons end
+		)
 	}
 
 	self.pieceBag = piece.MultiBag:new({
@@ -62,6 +65,25 @@ function gameScreen:init()
 		[piece.PIECE_SETS.TET] = 7,
 		[piece.PIECE_SETS.PENT] = 1,
 	})
+
+	self.keyInputMap = {
+		l = 'MOVE_LEFT',
+		a = 'MOVE_RIGHT',
+		e = 'DROP',
+		r = 'ROTATE_LEFT',
+		s = 'ROTATE_RIGHT',
+	}
+
+	baseScreen.init(self)
+end
+
+function gameScreen:layout()
+	self.buttons = {
+		self:newInputButton(5, -5, 10, 10, 'MOVE_LEFT'),
+		self:newInputButton(20, -5, 10, 10, 'MOVE_RIGHT'),
+		self:newInputButton(-20, -5, 10, 10, 'ROTATE_LEFT'),
+		self:newInputButton(-5, -5, 10, 10, 'ROTATE_RIGHT'),
+	}
 end
 
 function gameScreen:updateScore(horizCleared, vertCleared)
@@ -107,7 +129,7 @@ function gameScreen:dropPiece()
 		end
 
 		if allBlocked then
-			core.switchScreen(lossScreen:new(self))
+			ui:switchScreen(lossScreen:new(self))
 			return
 		end
 
@@ -123,17 +145,17 @@ function gameScreen:update(dt)
 	end
 end
 
-function gameScreen:keypressed(key)
-	if key == 'l' then
+function gameScreen:input(input)
+	if input == 'MOVE_LEFT' then
 		self.board:shiftPiece(-1)
-	elseif key == 'a' then
+	elseif input == 'MOVE_RIGHT' then
 		self.board:shiftPiece(1)
-	elseif key == 'e' then
+	elseif input == 'DROP' then
 		self.timers.drop:reset()
 		self:dropPiece()
-	elseif key == 'r' then
+	elseif input == 'ROTATE_LEFT' then
 		self.board:rotatePiece(-1)
-	elseif key == 's' then
+	elseif input == 'ROTATE_RIGHT' then
 		self.board:rotatePiece(1)
 	end
 end

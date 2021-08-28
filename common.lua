@@ -315,34 +315,22 @@ end
 -- All coordinates are given as positive/negative fractions of the screen.
 button = object:new()
 
-function button:init(x, y, width, height)
+function button:init(x, y, width, height, handler)
 	self.x = x
 	self.y = y
 	self.width = width
 	self.height = height
-end
-
-function button:windowResize(windowWidth, windowHeight)
-	if self.x < 0 then
-		self.realX = windowWidth * (1 + self.x - self.width)
-	else
-		self.realX = windowWidth * self.x
-	end
-
-	if self.y < 0 then
-		self.realY = windowHeight * (1 + self.y - self.height)
-	else
-		self.realY = windowHeight * self.y
-	end
-
-	self.realWidth = windowWidth * self.width
-	self.realHeight = windowHeight * self.height
+	self.handler = handler
 end
 
 function button:within(x, y)
-	if x < self.realX or x >= self.realX + self.realWidth or y < self.realY or y >= self.realY + self.realHeight then
+	if x < self.x or x >= self.x + self.width or y < self.y or y >= self.y + self.height then
 		return false
 	end
 
 	return true
+end
+
+function button:pressed()
+	self.handler()
 end
