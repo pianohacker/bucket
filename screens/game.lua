@@ -37,7 +37,7 @@ function gameScreen:init()
 	self.timers.drop:increment(dropIntervalForLevel(1))
 
 	self.board = board:new {
-		width = 10,
+		width = 8,
 		depth = 10
 	}
 	self.lost = false
