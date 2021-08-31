@@ -427,6 +427,25 @@ function PieceHintRenderer:init(getNextPiece)
 	Renderer.init(self)
 end
 
+function drawPiece(p, pieceX, pieceY, gridSize)
+	local xPadding = gridSize * ((4 - p.width) / 2)
+
+	love.graphics.setColor(hexToRgba(p.color .. 'bb'))
+	for x = 1,p.width do
+		for y = 1,p.height do
+			if p[x + p.xOffset][y + p.yOffset] then
+				love.graphics.rectangle(
+					'fill',
+					pieceX + xPadding + (x - 1) * gridSize,
+					pieceY + (y - 1) * gridSize,
+					gridSize - 1,
+					gridSize - 1
+				)
+			end
+		end
+	end
+end
+
 function PieceHintRenderer:draw()
 	local s = ui.shape
 
@@ -445,22 +464,8 @@ function PieceHintRenderer:draw()
 	local p = self.getNextPiece()
 	local pieceY = s:pct(9)
 	local gridSize = width / 4
-	local xPadding = gridSize * ((4 - p.width) / 2)
 
-	love.graphics.setColor(hexToRgba(p.color .. 'bb'))
-	for x = 1,p.width do
-		for y = 1,p.height do
-			if p[x + p.xOffset][y + p.yOffset] then
-				love.graphics.rectangle(
-					'fill',
-					hintX + xPadding + (x - 1) * gridSize,
-					pieceY + (y - 1) * gridSize,
-					gridSize - 1,
-					gridSize - 1
-				)
-			end
-		end
-	end
+	drawPiece(p, hintX, pieceY,  gridSize)
 end
 
 ScoreRenderer = Renderer:new()
@@ -630,5 +635,51 @@ function ButtonsRenderer:draw()
 			button.width,
 			button.height
 		)
+	end
+end
+
+PieceGalleryRenderer = Renderer:new()
+
+function PieceGalleryRenderer:init(pieces)
+	self.pieces = pieces
+end
+
+function PieceGalleryRenderer:draw()
+	local s = ui.shape
+
+	local rows = 1
+	local cellSize, columns
+
+	while true do
+		cellSize = s.fullHeight / rows
+		columns = math.floor(s.fullWidth / cellSize)
+
+		if rows * columns >= #self.pieces then
+			break
+		else
+			rows = rows + 1
+		end
+	end
+
+	local gridSize = cellSize / 6
+	local cellPadding = gridSize / 2
+
+	local pieceI = 1
+	for row = 1,rows do
+		local pieceY = (row - 1) * cellSize
+		for column = 1,columns do
+			local pieceX = (column - 1) * cellSize
+
+			drawPiece(self.pieces[pieceI], pieceX, pieceY, gridSize)
+			pieceI = pieceI + 1
+
+			if pieceI > #self.pieces then
+				break
+			end
+		end
+
+		if pieceI > #self.pieces then
+			break
+		end
 	end
 end

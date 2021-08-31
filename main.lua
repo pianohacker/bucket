@@ -98,7 +98,13 @@ function love.load(args)
 	local width, height = love.graphics.getDimensions()
 	ui:updateShape(width, height)
 
-	local startScreen = require "screens/start"
+	local startScreen
+	if args[1] == 'screen' and #args >= 2 then
+		startScreen = require("screens/" .. args[2])
+	else
+		startScreen = require "screens/start"
+	end
+
 	ui.screen = startScreen:new()
 end
 

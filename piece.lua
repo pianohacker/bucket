@@ -10,22 +10,21 @@ local hsluv = require('hsluv.hsluv')
 -- These pieces must be in square grids, for easy rotation.
 local PIECES = {
 	TRI = {
-		color = {
-			S = 50,
-			L = 75,
-		},
 		I = {
 			{0,1,0},
 			{0,1,0},
 			{0,1,0},
+			color = {0, 0, 80},
 		},
 		J = {
 			{0,1},
 			{1,1},
+			color = {0, 15, 60},
 		},
 		L = {
 			{1,0},
 			{1,1},
+			color = {180, 15, 60},
 		},
 	},
 	TET = {
@@ -72,7 +71,8 @@ local PIECES = {
 	PENT = {
 		color = {
 			S = 100,
-			L = 25,
+			L = 40,
+			Hstart = 30,
 		},
 		F = {
 			{0,1,1},
@@ -276,7 +276,7 @@ for category_name, piece_grids in pairs(PIECES) do
 		numPieces = numPieces + 1
 	end
 	numPieces = numPieces - 1 -- Ignore `color` key
-	local H = 0
+	local H = (piece_grids.color or {}).Hstart or 0
 	local Hstep = 360 / numPieces
 
 	for name, piece_yx in pairs(piece_grids) do
@@ -296,12 +296,16 @@ for category_name, piece_grids in pairs(PIECES) do
 
 		piece_xy:setBounds()
 
-		piece_xy.color = hsluv.hsluv_to_hex({
-			H,
-			piece_grids.color.S,
-			piece_grids.color.L,
-		})
-		H = H + Hstep
+		if piece_yx.color then
+			piece_xy.color = hsluv.hsluv_to_hex(piece_yx.color)
+		else
+			piece_xy.color = hsluv.hsluv_to_hex({
+				H,
+				piece_grids.color.S,
+				piece_grids.color.L,
+			})
+		end
+		H = (H + Hstep) % 360
 
 		piece_xy.category = category_name
 
