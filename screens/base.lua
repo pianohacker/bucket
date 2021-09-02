@@ -44,7 +44,7 @@ function baseScreen:mousepressed(x, y)
 	end
 end
 
-function baseScreen:keypressed(key, scancode, isrepeat)
+function baseScreen:keypressed(key, _, _)
 	if self.keyInputMap[key] then
 		self:input(self.keyInputMap[key])
 	end

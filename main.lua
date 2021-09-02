@@ -33,7 +33,7 @@ function UiShape:relPctCoords(x, y, width, height)
 
 	local realY
 	if y < 0 then
-		realY = self.fullHeight - self:pct(-y + width)
+		realY = self.fullHeight - self:pct(-y + height)
 	else
 		realY = self:pct(y)
 	end

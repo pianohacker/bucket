@@ -81,8 +81,9 @@ function gameScreen:layout()
 	self.buttons = {
 		self:newInputButton(5, -5, 10, 10, 'MOVE_LEFT'),
 		self:newInputButton(20, -5, 10, 10, 'MOVE_RIGHT'),
-		self:newInputButton(-20, -5, 10, 10, 'ROTATE_LEFT'),
-		self:newInputButton(-5, -5, 10, 10, 'ROTATE_RIGHT'),
+		self:newInputButton(-5, -5, 25, 10, 'DROP'),
+		self:newInputButton(-20, -20, 10, 10, 'ROTATE_LEFT'),
+		self:newInputButton(-5, -20, 10, 10, 'ROTATE_RIGHT'),
 	}
 end
 

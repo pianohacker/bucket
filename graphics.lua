@@ -626,10 +626,10 @@ function ButtonsRenderer:init(getButtons)
 end
 
 function ButtonsRenderer:draw()
-	love.graphics.setColor(1, 1, 1, 1)
+	love.graphics.setColor(1, 1, 1, .8)
 	for _, button in ipairs(self.getButtons()) do
 		love.graphics.rectangle(
-			'fill',
+			'line',
 			button.x,
 			button.y,
 			button.width,
