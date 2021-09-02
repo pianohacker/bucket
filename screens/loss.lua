@@ -4,7 +4,7 @@
 -- License, v. 2.0. If a copy of the MPL was not distributed with this
 -- file, You can obtain one at https://mozilla.org/MPL/2.0/.
 --
-local common = require "common"
+local anim = require "anim"
 local graphics = require "graphics"
 
 local baseScreen = require "screens/base"
@@ -13,7 +13,7 @@ local lossScreen = baseScreen:new()
 
 function lossScreen:init(gameScreen)
 	self.timers = {
-		fadeIn = common.linearTransition:new(1)
+		fadeIn = anim.linearTransition:new(1)
 	}
 
 	self.renderers = {

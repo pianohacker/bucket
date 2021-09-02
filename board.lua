@@ -28,9 +28,9 @@
 -- point of the the same square. (The top-left of squares on the north side, the top-right
 -- of squares on the east side, etc.)
 
-local common = require("common")
+local std = require("std")
 
-board = common.object:new()
+board = std.object:new()
 
 function board:init(o)
 	self.width = o.width
@@ -43,8 +43,8 @@ function board:init(o)
 end
 
 function board:clear()
-	self.upperGrid = common.grid:new(self.circumf, self.depth, false)
-	self.lowerGrid = common.grid:new(self.width, self.width, false)
+	self.upperGrid = std.grid:new(self.circumf, self.depth, false)
+	self.lowerGrid = std.grid:new(self.width, self.width, false)
 	self.piece = nil
 end
 

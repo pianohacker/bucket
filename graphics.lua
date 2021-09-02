@@ -6,14 +6,14 @@
 
 module("graphics", package.seeall)
 
-local common = require("common")
+local std = require("std")
 
 local function lerp2(a, b, t)
 	return {b[1] * t + a[1] * (1-t), b[2] * t + a[2] * (1-t)}
 end
 
 local function unpackEachv(input)
-	local result = common.list:new()
+	local result = std.list:new()
 
 	for _, t in ipairs(input) do
 		for _, x in ipairs(t) do
@@ -28,7 +28,7 @@ local function unpackEach(...)
 	return unpackEachv({...})
 end
 
-local Renderer = common.object:new()
+local Renderer = std.object:new()
 
 function Renderer:init()
 	self.fontDescriptions = self.fontDescriptions or {}
@@ -81,7 +81,7 @@ function BoardRenderer:updateGrid()
 	local s = ui.shape
 
 	-- Calculate top of board
-	self.upperGridPositions = common.grid:new(self.board.circumf, self.board.depth)
+	self.upperGridPositions = std.grid:new(self.board.circumf, self.board.depth)
 	local top_radius = s.smallest * (B_TOP_RADIUS + B_TOP_CORNERNESS)
 	local b_cornerness = top_radius * B_TOP_CORNERNESS
 	local step = 2 * math.pi / self.board.circumf
@@ -185,7 +185,7 @@ function BoardRenderer:drawSquare(t, r, graphics)
 end
 
 function BoardRenderer:drawSide(side)
-	local points = common.list:new()
+	local points = std.list:new()
 
 	points:insert(self:gridPoint(side * self.board.width + 1, 0, side))
 	points:insert(self:gridPoint((side - 1) * self.board.width + 1, 0, side))
@@ -341,7 +341,7 @@ function BoardRenderer:drawGridLineGraphics()
 
 	-- Horizontal grid lines on outside of bucket
 	for r=1,self.board.depth do
-		local points = common.list:new()
+		local points = std.list:new()
 
 		points:insert(lerp2(
 			self.upperGridPositions[self.board.circumf][0],

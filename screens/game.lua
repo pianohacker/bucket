@@ -4,8 +4,8 @@
 -- License, v. 2.0. If a copy of the MPL was not distributed with this
 -- file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+local anim = require "anim"
 local board = require "board"
-local common = require "common"
 local graphics = require "graphics"
 local piece = require "piece"
 
@@ -32,7 +32,7 @@ local gameScreen = baseScreen:new()
 
 function gameScreen:init()
 	self.timers = {
-		drop = common.interval:new(dropIntervalForLevel(1))
+		drop = anim.interval:new(dropIntervalForLevel(1))
 	}
 	self.timers.drop:increment(dropIntervalForLevel(1))
 

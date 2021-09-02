@@ -4,7 +4,7 @@
 -- License, v. 2.0. If a copy of the MPL was not distributed with this
 -- file, You can obtain one at https://mozilla.org/MPL/2.0/.
 --
-local common = require "common"
+local ui = require "ui"
 local graphics = require "graphics"
 
 local baseScreen = require "screens/base"
@@ -27,7 +27,7 @@ function startScreen:layout()
 	local s = ui.shape
 
 	self.buttons = {
-		common.button:new(
+		ui.button:new(
 			0,
 			0,
 			s.fullWidth,

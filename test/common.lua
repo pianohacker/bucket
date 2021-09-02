@@ -6,7 +6,7 @@
 
 module("test.common", package.seeall)
 
-local common = require("common")
+local std = require("std")
 
 function dedent(s)
 	local sep = s:match("^(%s+)[^%s]")
@@ -23,7 +23,7 @@ function dedent(s)
 		return s
 	end
 
-	local result = common.list:new()
+	local result = std.list:new()
 
 	local pos = 1
 	local nextstart, nextend = s:find(sep)
@@ -75,7 +75,7 @@ local function gridFilled(s)
 end
 
 function grid(gridString)
-	local lines = common.list:new()
+	local lines = std.list:new()
 	for str in string.gmatch(dedent(gridString), "([^\n]+)") do
 		lines:insert(str)
 	end
@@ -108,8 +108,8 @@ function grid(gridString)
 
 	local width = #rows[1] - depth - 2
 
-	local upperGrid = common.grid:new(width*4, depth, false)
-	local lowerGrid = common.grid:new(width, width, false)
+	local upperGrid = std.grid:new(width*4, depth, false)
+	local lowerGrid = std.grid:new(width, width, false)
 
 	assert(#rows == math.ceil((1 + depth + width + depth + 1)/2)*2)
 	assert(#rows[1] == depth + 1 + width + 1)
@@ -149,10 +149,10 @@ function grid(gridString)
 end
 
 function basicColsRepr(cols)
-	local result = common.list:new()
+	local result = std.list:new()
 
 	for y = 1,#cols[1] do
-		local line = common.list:new()
+		local line = std.list:new()
 
 		for x = 1,#cols do
 			if cols[x][y] then
@@ -192,10 +192,10 @@ function gridRepr(upper, lower)
 	local depth = upper.height
 	local width = lower.width
 
-	local outGrid = common.list:new()
+	local outGrid = std.list:new()
 
 	local function topOrBottomRow(r, tStart, tEnd, tDelta)
-		local row = common.list:new()
+		local row = std.list:new()
 
 		for _ = 1,depth do
 			row:insert(r == 1)
@@ -214,7 +214,7 @@ function gridRepr(upper, lower)
 		return row
 	end
 
-	local firstLastRow = common.list:new()
+	local firstLastRow = std.list:new()
 	for _ = 1,depth do
 		firstLastRow:insert(false)
 	end
@@ -228,7 +228,7 @@ function gridRepr(upper, lower)
 	end
 
 	for y = 1,width do
-		local row = common.list:new()
+		local row = std.list:new()
 
 		row:insert(true)
 
@@ -259,7 +259,7 @@ function gridRepr(upper, lower)
 		outGrid:insert({})
 	end
 
-	local result = common.list:new()
+	local result = std.list:new()
 
 	for y = 1,#outGrid,2 do
 		local line = ""

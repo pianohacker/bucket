@@ -4,7 +4,7 @@
 -- License, v. 2.0. If a copy of the MPL was not distributed with this
 -- file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-local common = require('common')
+local std = require('std')
 local hsluv = require('hsluv.hsluv')
 
 -- These pieces must be in square grids, for easy rotation.
@@ -316,11 +316,11 @@ for category_name, piece_grids in pairs(PIECES) do
 	end
 end
 
-local Bag = common.object:new()
+local Bag = std.object:new()
 piece.Bag = Bag
 
 function Bag:init(values, setLength)
-	self.values = common.list:fromTable(values)
+	self.values = std.list:fromTable(values)
 	self.setLength = setLength or #values
 	self.pos = self.setLength + 1
 end
@@ -336,13 +336,13 @@ function Bag:pick()
 	return val
 end
 
-local MultiBag = common.object:new()
+local MultiBag = std.object:new()
 piece.MultiBag = MultiBag
 
 function MultiBag:init(valueBags)
-	self.valueBags = common.list:new()
+	self.valueBags = std.list:new()
 
-	local setMap = common.list:new()
+	local setMap = std.list:new()
 	local setIndex = 1
 	for set, weight in pairs(valueBags) do
 		self.valueBags:insert(Bag:new(set))

@@ -4,9 +4,10 @@
 -- License, v. 2.0. If a copy of the MPL was not distributed with this
 -- file, You can obtain one at https://mozilla.org/MPL/2.0/.
 --
-local common = require "common"
+local std = require "std"
+local ui = require "ui"
 
-local baseScreen = common.object:new()
+local baseScreen = std.object:new()
 
 function baseScreen:init()
 	self:layout()
@@ -19,7 +20,7 @@ function baseScreen:resize()
 	self:layout()
 
 	for _, renderer in ipairs(self.renderers) do
-		renderer:resize(width, height)
+		renderer:resize()
 	end
 end
 
@@ -53,7 +54,7 @@ end
 function baseScreen:newInputButton(x, y, width, height, input)
 	x, y, width, height = ui.shape:relPctCoords(x, y, width, height)
 
-	return common.button:new(x, y, width, height, function() self:input(input) end)
+	return ui.button:new(x, y, width, height, function() self:input(input) end)
 end
 
 return baseScreen
