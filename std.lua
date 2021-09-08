@@ -51,37 +51,64 @@ function dump(...)
 end
 
 object = {}
-function object:new(...)
-	return self:from({}, ...)
+function object:clone()
+	return self:extend({})
 end
-function object:from(o, ...)
-	local metatable = {
-		__add = self.__add,
-		__sub = self.__sub,
-		__mul = self.__mul,
-		__div = self.__div,
-		__mod = self.__mod,
-		__pow = self.__pow,
-		__unm = self.__unm,
-		__concat = self.__concat,
-		__len = self.__len,
-		__eq = self.__eq,
-		__lt = self.__lt,
-		__le = self.__le,
-		__index = self.__index or self,
-		__newindex = self.__newindex,
-		__call = self.__call,
-	}
-	setmetatable(o, metatable)
 
-	if o.init then
-		o:init(...)
+function object:extend(o)
+	local constructor = nil
+
+	if type(o) == 'function' then
+		constructor = o
+		o = {}
+	else
+		o = o or {}
+	end
+
+	local function child__index(child, key)
+		if key ~= '__index' and child.__index then
+			local value = child:__index(key)
+
+			if value ~= nil then
+				return value
+			end
+		end
+
+		if self[key] ~= nil then
+			return self[key]
+		end
+	end
+	-- First, set a bare metatable that can walk up the chain...
+	setmetatable(o, {__index = child__index})
+
+	-- Then, pull in any magic methods from the resulting object.
+	setmetatable(o, {
+		__add = o.__add,
+		__sub = o.__sub,
+		__mul = o.__mul,
+		__div = o.__div,
+		__mod = o.__mod,
+		__pow = o.__pow,
+		__unm = o.__unm,
+		__concat = o.__concat,
+		__len = o.__len,
+		__eq = o.__eq,
+		__lt = o.__lt,
+		__le = o.__le,
+		__index = child__index,
+		__newindex = o.__newindex,
+		__call = o.__call,
+	})
+
+	-- Finally, call the constructor if any.
+	if constructor then
+		constructor(o)
 	end
 
 	return o
 end
 
-list = object:new()
+list = object:clone()
 list.concat = table.concat
 list.insert = table.insert
 list.maxn = table.maxn
@@ -89,13 +116,13 @@ list.remove = table.remove
 list.sort = table.sort
 
 function list:fromTable(t)
-	local o = self:new()
+	local o = {}
 
 	for i, x in ipairs(t) do
 		o[i] = x
 	end
 
-	return o
+	return self:extend(o)
 end
 
 function list:values()
@@ -143,82 +170,71 @@ function list:reverse()
 	end
 end
 
-function list:extend(t)
+function list:insertAll(t)
 	for _, x in ipairs(t) do
 		self:insert(x)
 	end
 end
 
-grid = object:new()
+grid = object:clone()
 
-local checkedGridColumn = {}
-function checkedGridColumn:new(g, x)
-	local o = {
-		g = g,
-		x = x,
-	}
-	setmetatable(o, checkedGridColumn)
-	return o
+local function newCheckedGridColumn(g, x)
+	return object:extend({
+		_checkCoords = function(self, y, op)
+			if x < 1 or x > g.width or y < 1 or y > g.height then
+				error(string.format("attempt to %s grid at out-of-bounds (%d, %d)", op, x, y), 3)
+			end
+		end,
+
+		__index = function(self, y)
+			if type(y) == "number" then
+				self:_checkCoords(y, "get")
+				return g[x][y]
+			end
+		end,
+
+		__newindex = function(self, y, val)
+			if type(y) == "number" then
+				self:_checkCoords(y, "set")
+				g[x][y] = val
+			else
+				rawset(self, y, val)
+			end
+		end,
+	})
 end
 
-function checkedGridColumn:_checkCoords(y, op)
-	if self.x < 1 or self.x > self.g.width or y < 1 or y > self.g.height then
-		error(string.format("attempt to %s grid at out-of-bounds (%d, %d)", op, self.x, y), 3)
-	end
+
+function newCheckedGrid(g)
+	local ncg = object:extend({
+		__index = function(_, x)
+			if type(x) == "number" then
+				return newCheckedGridColumn(g, x)
+			else
+				return g[x]
+			end
+		end,
+
+		clear = function(_)
+			g:clear()
+		end,
+	})
+	return ncg
 end
 
-function checkedGridColumn:__index(y)
-	if type(y) == "number" then
-		self:_checkCoords(y, "get")
-		return self.g[self.x][y]
-	elseif rawget(self, y) then
-		return rawget(self, y)
-	else
-		return checkedGridColumn[y]
-	end
-end
-
-function checkedGridColumn:__newindex(y, val)
-	if type(y) == "number" then
-		self:_checkCoords(y, "set")
-		self.g[self.x][y] = val
-	else
-		rawset(self, y, val)
-	end
-end
-
-local checkedGrid = object:new()
-
-function checkedGrid:init(g)
-	self.g = g
-end
-function checkedGrid:__index(x)
-	if type(x) == "number" then
-		return checkedGridColumn:new(self.g, x)
-	elseif rawget(self, x) then
-		return rawget(self, x)
-	elseif checkedGrid[x] then
-		return checkedGrid[x]
-	else
-		return self.g[x]
-	end
-end
-
-function grid:new(...)
-	local o = object.new(grid, ...)
+function grid:new(width, height, default)
+	local o = self:extend({
+		width = width,
+		height = height,
+		default = default,
+	})
 	o:clear()
 
 	if DEBUG_ASSERTS then
-		return checkedGrid:new(o)
+		return newCheckedGrid(o)
 	else
 		return o
 	end
-end
-
-function grid:init(width, height, default)
-	self.width = width
-	self.height = height
-	self.default = default
 end
 
 function grid:clear()
@@ -231,7 +247,7 @@ function grid:clear()
 end
 
 function grid:row(y)
-	local result = list:new()
+	local result = list:clone()
 
 	for x = 1,self.width do
 		result:insert(self[x][y])
@@ -241,7 +257,7 @@ function grid:row(y)
 end
 
 function grid:col(x)
-	local result = list:new()
+	local result = list:clone()
 
 	for y = 1,self.height do
 		result:insert(self[x][y])

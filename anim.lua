@@ -8,62 +8,62 @@ module("anim", package.seeall)
 
 local std = require("std")
 
-interval = std.object:new()
+interval = std.object:extend({
+	elapsed = 0,
+	new = function(self, length)
+		return self:extend({ length = length })
+	end,
 
-function interval:init(length)
-	self.length = length
-	self.elapsed = 0
-end
+	resize = function(self, length)
+		self.length = length
+	end,
 
-function interval:resize(length)
-	self.length = length
-end
+	increment = function(self, dt)
+		if self.stopped then return false end
 
-function interval:increment(dt)
-	if self.stopped then return false end
+		self.elapsed = self.elapsed + dt
+	end,
 
-	self.elapsed = self.elapsed + dt
-end
+	firing = function(self)
+		if self.paused or self.stopped then return false end
 
-function interval:firing()
-	if self.paused or self.stopped then return false end
+		if self.elapsed >= self.length then
+			self.elapsed = 0
+			return true
+		end
 
-	if self.elapsed >= self.length then
+		return false
+	end,
+
+	pause = function(self)
+		self.paused = true
+	end,
+
+	stop = function(self)
+		self.stopped = true
+	end,
+
+	start = function(self)
+		self.stopped = false
+		self.paused = false
+	end,
+
+	reset = function(self)
 		self.elapsed = 0
-		return true
-	end
+	end,
+})
 
-	return false
-end
+linearTransition = std.object:extend({
+	elapsed = 0,
+	new = function(self, length)
+		return self:extend({ length = length })
+	end,
 
-function interval:pause()
-	self.paused = true
-end
+	increment = function(self, dt)
+		self.elapsed = math.min(self.elapsed + dt, self.length)
+	end,
 
-function interval:stop()
-	self.stopped = true
-end
-
-function interval:start()
-	self.stopped = false
-	self.paused = false
-end
-
-function interval:reset()
-	self.elapsed = 0
-end
-
-linearTransition = std.object:new()
-
-function linearTransition:init(length)
-	self.length = length
-	self.elapsed = 0
-end
-
-function linearTransition:increment(dt)
-	self.elapsed = math.min(self.elapsed + dt, self.length)
-end
-
-function linearTransition:range(min, max)
-	return min + (max - min) * self.elapsed / self.length
-end
+	range = function(self, min, max)
+		return min + (max - min) * self.elapsed / self.length
+	end,
+})

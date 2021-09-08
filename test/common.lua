@@ -23,7 +23,7 @@ function dedent(s)
 		return s
 	end
 
-	local result = std.list:new()
+	local result = std.list:clone()
 
 	local pos = 1
 	local nextstart, nextend = s:find(sep)
@@ -75,7 +75,7 @@ local function gridFilled(s)
 end
 
 function grid(gridString)
-	local lines = std.list:new()
+	local lines = std.list:clone()
 	for str in string.gmatch(dedent(gridString), "([^\n]+)") do
 		lines:insert(str)
 	end
@@ -149,10 +149,10 @@ function grid(gridString)
 end
 
 function basicColsRepr(cols)
-	local result = std.list:new()
+	local result = std.list:clone()
 
 	for y = 1,#cols[1] do
-		local line = std.list:new()
+		local line = std.list:clone()
 
 		for x = 1,#cols do
 			if cols[x][y] then
@@ -192,10 +192,10 @@ function gridRepr(upper, lower)
 	local depth = upper.height
 	local width = lower.width
 
-	local outGrid = std.list:new()
+	local outGrid = std.list:clone()
 
 	local function topOrBottomRow(r, tStart, tEnd, tDelta)
-		local row = std.list:new()
+		local row = std.list:clone()
 
 		for _ = 1,depth do
 			row:insert(r == 1)
@@ -214,7 +214,7 @@ function gridRepr(upper, lower)
 		return row
 	end
 
-	local firstLastRow = std.list:new()
+	local firstLastRow = std.list:clone()
 	for _ = 1,depth do
 		firstLastRow:insert(false)
 	end
@@ -228,7 +228,7 @@ function gridRepr(upper, lower)
 	end
 
 	for y = 1,width do
-		local row = std.list:new()
+		local row = std.list:clone()
 
 		row:insert(true)
 
@@ -259,7 +259,7 @@ function gridRepr(upper, lower)
 		outGrid:insert({})
 	end
 
-	local result = std.list:new()
+	local result = std.list:clone()
 
 	for y = 1,#outGrid,2 do
 		local line = ""

@@ -13,7 +13,7 @@ local baseScreen = require "screens/base"
 local pieceGalleryScreen = baseScreen:new()
 
 function pieceGalleryScreen:init()
-	local pieces = std.list:new()
+	local pieces = std.list:clone()
 
 	for _, set in pairs(piece.PIECE_SETS) do
 		for _, p in ipairs(set) do

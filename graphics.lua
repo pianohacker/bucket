@@ -13,7 +13,7 @@ local function lerp2(a, b, t)
 end
 
 local function unpackEachv(input)
-	local result = std.list:new()
+	local result = std.list:clone()
 
 	for _, t in ipairs(input) do
 		for _, x in ipairs(t) do
@@ -28,7 +28,7 @@ local function unpackEach(...)
 	return unpackEachv({...})
 end
 
-local Renderer = std.object:new()
+local Renderer = std.object:clone()
 
 function Renderer:init()
 	self.fontDescriptions = self.fontDescriptions or {}
@@ -185,7 +185,7 @@ function BoardRenderer:drawSquare(t, r, graphics)
 end
 
 function BoardRenderer:drawSide(side)
-	local points = std.list:new()
+	local points = std.list:clone()
 
 	points:insert(self:gridPoint(side * self.board.width + 1, 0, side))
 	points:insert(self:gridPoint((side - 1) * self.board.width + 1, 0, side))
@@ -341,7 +341,7 @@ function BoardRenderer:drawGridLineGraphics()
 
 	-- Horizontal grid lines on outside of bucket
 	for r=1,self.board.depth do
-		local points = std.list:new()
+		local points = std.list:clone()
 
 		points:insert(lerp2(
 			self.upperGridPositions[self.board.circumf][0],

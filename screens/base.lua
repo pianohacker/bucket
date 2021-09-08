@@ -7,7 +7,7 @@
 local std = require "std"
 local ui = require "ui"
 
-local baseScreen = std.object:new()
+local baseScreen = std.object:clone()
 
 function baseScreen:init()
 	self:layout()

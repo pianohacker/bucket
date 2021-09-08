@@ -316,13 +316,17 @@ for category_name, piece_grids in pairs(PIECES) do
 	end
 end
 
-local Bag = std.object:new()
+local Bag = std.object:clone()
 piece.Bag = Bag
 
-function Bag:init(values, setLength)
-	self.values = std.list:fromTable(values)
-	self.setLength = setLength or #values
-	self.pos = self.setLength + 1
+function Bag:new(values, setLength)
+	setLength = setLength or #values
+
+	return self:extend({
+		values = std.list:fromTable(values),
+		setLength = setLength,
+		pos = setLength + 1,
+	})
 end
 
 function Bag:pick()
@@ -336,25 +340,27 @@ function Bag:pick()
 	return val
 end
 
-local MultiBag = std.object:new()
+local MultiBag = std.object:clone()
 piece.MultiBag = MultiBag
 
-function MultiBag:init(valueBags)
-	self.valueBags = std.list:new()
+function MultiBag:new(valueBags)
+	return self:extend(function(o)
+		o.valueBags = std.list:clone()
 
-	local setMap = std.list:new()
-	local setIndex = 1
-	for set, weight in pairs(valueBags) do
-		self.valueBags:insert(Bag:new(set))
+		local setMap = std.list:clone()
+		local setIndex = 1
+		for set, weight in pairs(valueBags) do
+			o.valueBags:insert(Bag:new(set))
 
-		for _ = 1, weight do
-			setMap:insert(setIndex)
+			for _ = 1, weight do
+				setMap:insert(setIndex)
+			end
+
+			setIndex = setIndex + 1
 		end
 
-		setIndex = setIndex + 1
-	end
-
-	self.setIndexBag = Bag:new(setMap)
+		o.setIndexBag = Bag:new(setMap)
+	end)
 end
 
 function MultiBag:pick()

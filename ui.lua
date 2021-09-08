@@ -8,7 +8,7 @@ local MIN_ASPECT = 1.6
 
 local std = require("std")
 
-local UiShape = std.object:new()
+local UiShape = std.object:clone()
 
 function UiShape:pct(p)
 	return self.smallest * p / 100
@@ -63,7 +63,7 @@ function ui:updateShape(fullWidth, fullHeight)
 		end
 	end
 
-	self.shape = UiShape:from({
+	self.shape = UiShape:extend({
 		cx = fullWidth/2,
 		cy = fullHeight/2,
 		fullWidth = fullWidth,
@@ -78,15 +78,17 @@ end
 --- A clickable/touchable button.
 --
 -- All coordinates are given as positive/negative fractions of the screen.
-local button = std.object:new()
+local button = std.object:clone()
 ui.button = button
 
-function button:init(x, y, width, height, handler)
-	self.x = x
-	self.y = y
-	self.width = width
-	self.height = height
-	self.handler = handler
+function button:new(x, y, width, height, handler)
+	return self:extend({
+		x = x,
+		y = y,
+		width = width,
+		height = height,
+		handler = handler,
+	})
 end
 
 function button:within(x, y)

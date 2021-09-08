@@ -30,16 +30,18 @@
 
 local std = require("std")
 
-board = std.object:new()
+board = std.object:clone()
 
-function board:init(o)
-	self.width = o.width
-	self.depth = o.depth
-	self.circumf = self.width * 4
-	self.rMin = -self.width + 1
-	self.gridGeneration = 1
-	self.pieceGeneration = 1
-	self:clear()
+function board:new(o)
+return self:extend(function(b)
+		b.width = o.width
+		b.depth = o.depth
+		b.circumf = b.width * 4
+		b.rMin = -b.width + 1
+		b.gridGeneration = 1
+		b.pieceGeneration = 1
+		b:clear()
+	end)
 end
 
 function board:clear()
