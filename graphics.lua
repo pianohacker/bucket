@@ -30,22 +30,23 @@ end
 
 local Renderer = std.object:clone()
 
-function Renderer:init()
-	self.fontDescriptions = self.fontDescriptions or {}
-	self.fonts = {}
-
-	self:resize()
+function Renderer:fontDescriptions()
+	return {}
 end
 
-function Renderer:resize()
-	local s = ui.shape
+Renderer.fonts = std.memoized(
+	function(self) return ui.shape, self end,
+	function(self, s)
+		local fonts = {}
+		for key, description in pairs(self.fontDescriptions()) do
+			local path, relSize = unpack(description)
 
-	for key, description in pairs(self.fontDescriptions) do
-		local path, relSize = unpack(description)
+			fonts[key] = love.graphics.newFont(path, s:pct(relSize))
+		end
 
-		self.fonts[key] = love.graphics.newFont(path, s:pct(relSize))
+		return fonts
 	end
-end
+)
 
 local B_TOP_RADIUS = 0.4 -- Radius of outside of board as a proportion of the screen.
 local B_TOP_CORNERNESS = 0.15 -- Amount that corners are drawn out.
@@ -57,92 +58,91 @@ local B_BG_SHADOW_COLOR = "#181818"
 local B_BG_BLOCKED_COLOR = "#331111"
 local B_GRID_HIGHLIGHT_COLOR = "#888888"
 
-BoardRenderer = Renderer:new()
+GridLayout = std.object:clone()
 
-function BoardRenderer:init(board) 
-	self.board = board
-	self.lastDrawnPieceGeneration = 0
-	self.lastDrawnGridGeneration = 0
+BoardRenderer = Renderer:clone()
 
-	Renderer.init(self)
+function BoardRenderer:new(board) 
+	return self:extend({
+		board = board,
+		lastDrawnPieceGeneration = 0,
+		lastDrawnGridGeneration = 0,
+	})
 end
 
-function BoardRenderer:resize()
-	Renderer.resize(self)
-
-	self:updateGrid()
-end
-
-function BoardRenderer:updateGrid()
-	self.lastDrawnGridGeneration = 0
-	self.lastDrawnPieceGeneration = 0
-
-	-- Scale to window
-	local s = ui.shape
-
-	-- Calculate top of board
-	self.upperGridPositions = std.grid:new(self.board.circumf, self.board.depth)
-	local top_radius = s.smallest * (B_TOP_RADIUS + B_TOP_CORNERNESS)
-	local b_cornerness = top_radius * B_TOP_CORNERNESS
-	local step = 2 * math.pi / self.board.circumf
-	for t=1,self.board.circumf do
-		local angle = (t - 1) * step + B_START_ANGLE
-		local cornerness = (math.abs(math.sin((t - 1) * math.pi / self.board.width))) * b_cornerness
-		self.upperGridPositions[t][self.board.depth] = {
-			s.cx + math.cos(angle) * (top_radius - cornerness),
-			s.cy + math.sin(angle) * (top_radius - cornerness)
-		}
-	end
-
-	-- Calculate bottom of board
-	self.bottom_radius = s.smallest * B_BOTTOM_RADIUS
-
-	local t = 1
-	-- North
-	for x = 1,self.board.width do
-		self.upperGridPositions[t][0] = self:bottomGridPoint(x, 1)
-		t = t + 1
-	end
-
-	-- East
-	for y = 1,self.board.width do
-		self.upperGridPositions[t][0] = self:bottomGridPoint(self.board.width+1, y)
-		t = t + 1
-	end
-
-	-- South
-	for x = self.board.width+1,2,-1 do
-		self.upperGridPositions[t][0] = self:bottomGridPoint(x, self.board.width+1)
-		t = t + 1
-	end
-
-	-- West
-	for y = self.board.width+1,2,-1 do
-		self.upperGridPositions[t][0] = self:bottomGridPoint(1, y)
-		t = t + 1
-	end
-
-	for t = 1, self.board.circumf do
-		for r = 1, self.board.depth - 1 do
-			self.upperGridPositions[t][r] = lerp2(
-				self.upperGridPositions[t][0],
-				self.upperGridPositions[t][self.board.depth],
-				r/self.board.depth
-			)
+BoardRenderer.gridLayout = std.memoized(
+	function() return ui.shape end,
+	function(self, s)
+		-- Calculate top of board
+		local upperGridPositions = std.grid:new(self.board.circumf, self.board.depth)
+		local top_radius = s.smallest * (B_TOP_RADIUS + B_TOP_CORNERNESS)
+		local b_cornerness = top_radius * B_TOP_CORNERNESS
+		local step = 2 * math.pi / self.board.circumf
+		for t=1,self.board.circumf do
+			local angle = (t - 1) * step + B_START_ANGLE
+			local cornerness = (math.abs(math.sin((t - 1) * math.pi / self.board.width))) * b_cornerness
+			upperGridPositions[t][self.board.depth] = {
+				s.cx + math.cos(angle) * (top_radius - cornerness),
+				s.cy + math.sin(angle) * (top_radius - cornerness)
+			}
 		end
-	end
-end
 
-function BoardRenderer:bottomGridPoint(x, y)
+		-- Calculate bottom of board
+		local gl = GridLayout:extend({
+			board = self.board,
+			bottomRadius = s.smallest * B_BOTTOM_RADIUS,
+			upperGridPositions = upperGridPositions,
+		})
+
+		local t = 1
+		-- North
+		for x = 1,self.board.width do
+			upperGridPositions[t][0] = gl:bottomGridPoint(x, 1)
+			t = t + 1
+		end
+
+		-- East
+		for y = 1,self.board.width do
+			upperGridPositions[t][0] = gl:bottomGridPoint(self.board.width+1, y)
+			t = t + 1
+		end
+
+		-- South
+		for x = self.board.width+1,2,-1 do
+			upperGridPositions[t][0] = gl:bottomGridPoint(x, self.board.width+1)
+			t = t + 1
+		end
+
+		-- West
+		for y = self.board.width+1,2,-1 do
+			upperGridPositions[t][0] = gl:bottomGridPoint(1, y)
+			t = t + 1
+		end
+
+		for t = 1, self.board.circumf do
+			for r = 1, self.board.depth - 1 do
+				upperGridPositions[t][r] = lerp2(
+					upperGridPositions[t][0],
+					upperGridPositions[t][self.board.depth],
+					r/self.board.depth
+				)
+			end
+		end
+
+		return gl
+	end
+)
+
+function GridLayout:bottomGridPoint(x, y)
 	local s = ui.shape
 
 	return {
-		s.cx + self.bottom_radius * (2 * ((x - 1) / self.board.width) - 1),
-		s.cy + self.bottom_radius * (2 * ((y - 1) / self.board.width) - 1),
+		s.cx + self.bottomRadius * (2 * ((x - 1) / self.board.width) - 1),
+		s.cy + self.bottomRadius * (2 * ((y - 1) / self.board.width) - 1),
 	}
 end
 
-function BoardRenderer:gridPoint(t, r, side)
+function GridLayout:gridPoint(t, r, side)
 	side = side or self.board:side(t)
 
 	-- Coordinates on the sides of the bucket are easy.
@@ -171,27 +171,29 @@ function BoardRenderer:gridPoint(t, r, side)
 end
 
 function BoardRenderer:drawSquare(t, r, graphics)
+	local gridLayout = self:gridLayout()
 	local side = self.board:side(t)
 
 	love.graphics.polygon(
 		'fill',
 		unpackEach(
-			self:gridPoint(t+1, r-1, side),
-			self:gridPoint(t, r-1, side),
-			self:gridPoint(t, r, side),
-			self:gridPoint(t+1, r, side)
+			gridLayout:gridPoint(t+1, r-1, side),
+			gridLayout:gridPoint(t, r-1, side),
+			gridLayout:gridPoint(t, r, side),
+			gridLayout:gridPoint(t+1, r, side)
 		)
 	)
 end
 
 function BoardRenderer:drawSide(side)
+	local gridLayout = self:gridLayout()
 	local points = std.list:clone()
 
-	points:insert(self:gridPoint(side * self.board.width + 1, 0, side))
-	points:insert(self:gridPoint((side - 1) * self.board.width + 1, 0, side))
+	points:insert(gridLayout:gridPoint(side * self.board.width + 1, 0, side))
+	points:insert(gridLayout:gridPoint((side - 1) * self.board.width + 1, 0, side))
 
 	for t = (side - 1) * self.board.width + 1, side * self.board.width + 1 do
-		points:insert(self:gridPoint(t, self.board.depth, side))
+		points:insert(gridLayout:gridPoint(t, self.board.depth, side))
 	end
 
 	love.graphics.polygon('fill', unpackEachv(points))
@@ -294,49 +296,51 @@ function BoardRenderer:drawSquareGraphics()
 end
 
 function BoardRenderer:drawGridLineGraphics()
+	local gl = self:gridLayout()
+
 	-- Lines up the side of the bucket
 	love.graphics.setColor(hexToRgba(B_GRID_COLOR))
 	for t=1,self.board.circumf do
 		love.graphics.line(
-			self.upperGridPositions[t][0][1],
-			self.upperGridPositions[t][0][2],
-			self.upperGridPositions[t][self.board.depth][1],
-			self.upperGridPositions[t][self.board.depth][2]
+			gl.upperGridPositions[t][0][1],
+			gl.upperGridPositions[t][0][2],
+			gl.upperGridPositions[t][self.board.depth][1],
+			gl.upperGridPositions[t][self.board.depth][2]
 		)
 	end
 
 	-- Inner grid lines
 	for x=2,self.board.width do
 		love.graphics.line(unpackEach(
-			self:bottomGridPoint(x, 1),
-			self:bottomGridPoint(x, self.board.width+1)
+			gl:bottomGridPoint(x, 1),
+			gl:bottomGridPoint(x, self.board.width+1)
 		))
 	end
 
 	for y=2,self.board.width do
 		love.graphics.line(unpackEach(
-			self:bottomGridPoint(1, y),
-			self:bottomGridPoint(self.board.width+1, y)
+			gl:bottomGridPoint(1, y),
+			gl:bottomGridPoint(self.board.width+1, y)
 		))
 	end
 
 	-- Outer, highlighted grid lines
 	love.graphics.setColor(hexToRgba(B_GRID_HIGHLIGHT_COLOR))
 	love.graphics.line(unpackEach(
-		self:bottomGridPoint(1, 1),
-		self:bottomGridPoint(1, self.board.width+1)
+		gl:bottomGridPoint(1, 1),
+		gl:bottomGridPoint(1, self.board.width+1)
 	))
 	love.graphics.line(unpackEach(
-		self:bottomGridPoint(self.board.width+1, 1),
-		self:bottomGridPoint(self.board.width+1, self.board.width+1)
+		gl:bottomGridPoint(self.board.width+1, 1),
+		gl:bottomGridPoint(self.board.width+1, self.board.width+1)
 	))
 	love.graphics.line(unpackEach(
-		self:bottomGridPoint(1, 1),
-		self:bottomGridPoint(self.board.width+1, 1)
+		gl:bottomGridPoint(1, 1),
+		gl:bottomGridPoint(self.board.width+1, 1)
 	))
 	love.graphics.line(unpackEach(
-		self:bottomGridPoint(1, self.board.width+1),
-		self:bottomGridPoint(self.board.width+1, self.board.width+1)
+		gl:bottomGridPoint(1, self.board.width+1),
+		gl:bottomGridPoint(self.board.width+1, self.board.width+1)
 	))
 
 	-- Horizontal grid lines on outside of bucket
@@ -344,14 +348,14 @@ function BoardRenderer:drawGridLineGraphics()
 		local points = std.list:clone()
 
 		points:insert(lerp2(
-			self.upperGridPositions[self.board.circumf][0],
-			self.upperGridPositions[self.board.circumf][self.board.depth],
+			gl.upperGridPositions[self.board.circumf][0],
+			gl.upperGridPositions[self.board.circumf][self.board.depth],
 			r/self.board.depth
 		))
 		for t=1,self.board.circumf do
 			points:insert(lerp2(
-				self.upperGridPositions[t][0],
-				self.upperGridPositions[t][self.board.depth],
+				gl.upperGridPositions[t][0],
+				gl.upperGridPositions[t][self.board.depth],
 				r/self.board.depth
 			))
 		end
@@ -391,10 +395,6 @@ function BoardRenderer:updatePieceGraphics()
 end
 
 function BoardRenderer:draw()
-	if not self.upperGridPositions then
-		self:updateGrid()
-	end
-
 	if self.lastDrawnPieceGeneration < self.board.pieceGeneration then
 		self:updateBackgroundGraphics()
 		self:updatePieceGraphics()
@@ -415,16 +415,18 @@ function BoardRenderer:draw()
 	love.graphics.setBlendMode('alpha')
 end
 
-PieceHintRenderer = Renderer:new()
+PieceHintRenderer = Renderer:clone()
 
-function PieceHintRenderer:init(getNextPiece)
-	self.getNextPiece = getNextPiece
+function PieceHintRenderer:new(getNextPiece)
+	return self:extend({
+		getNextPiece = getNextPiece,
+	})
+end
 
-	self.fontDescriptions = {
+function PieceHintRenderer:fontDescriptions()
+	return {
 		main = {"fonts/AlegreyaSansSC-Medium.ttf", 5},
 	}
-
-	Renderer.init(self)
 end
 
 function drawPiece(p, pieceX, pieceY, gridSize)
@@ -454,7 +456,7 @@ function PieceHintRenderer:draw()
 
 	love.graphics.printf(
 		"Next",
-		self.fonts.main,
+		self:fonts().main,
 		hintX,
 		s:pct(3),
 		width,
@@ -468,19 +470,21 @@ function PieceHintRenderer:draw()
 	drawPiece(p, hintX, pieceY,  gridSize)
 end
 
-ScoreRenderer = Renderer:new()
+ScoreRenderer = Renderer:clone()
 
-function ScoreRenderer:init(getLevel, getScore, getClearedLines)
-	self.getLevel = getLevel
-	self.getScore = getScore
-	self.getClearedLines = getClearedLines
+function ScoreRenderer:new(getLevel, getScore, getClearedLines)
+	return self:extend({
+		getLevel = getLevel,
+		getScore = getScore,
+		getClearedLines = getClearedLines,
+	})
+end
 
-	self.fontDescriptions = {
+function ScoreRenderer:fontDescriptions()
+	return {
 		title = {"fonts/AlegreyaSansSC-Medium.ttf", 5},
 		main = {"fonts/AlegreyaSansSC-Light.ttf", 4},
 	}
-
-	Renderer.init(self)
 end
 
 function ScoreRenderer:draw()
@@ -492,7 +496,7 @@ function ScoreRenderer:draw()
 
 	love.graphics.printf(
 		"Level",
-		self.fonts.title,
+		self:fonts().title,
 		s:pct(5),
 		s:pct(3),
 		width,
@@ -500,7 +504,7 @@ function ScoreRenderer:draw()
 	)
 	love.graphics.printf(
 		self.getLevel(),
-		self.fonts.main,
+		self:fonts().main,
 		s:pct(5),
 		s:pct(8),
 		width,
@@ -509,7 +513,7 @@ function ScoreRenderer:draw()
 
 	love.graphics.printf(
 		"Score",
-		self.fonts.title,
+		self:fonts().title,
 		s:pct(5),
 		s:pct(12),
 		width,
@@ -517,7 +521,7 @@ function ScoreRenderer:draw()
 	)
 	love.graphics.printf(
 		self.getScore(),
-		self.fonts.main,
+		self:fonts().main,
 		s:pct(5),
 		s:pct(17),
 		width,
@@ -526,7 +530,7 @@ function ScoreRenderer:draw()
 
 	love.graphics.printf(
 		"Lines",
-		self.fonts.title,
+		self:fonts().title,
 		s:pct(5),
 		s:pct(21),
 		width,
@@ -534,7 +538,7 @@ function ScoreRenderer:draw()
 	)
 	love.graphics.printf(
 		self.getClearedLines(),
-		self.fonts.main,
+		self:fonts().main,
 		s:pct(5),
 		s:pct(25),
 		width,
@@ -542,15 +546,13 @@ function ScoreRenderer:draw()
 	)
 end
 
-StartRenderer = Renderer:new()
+StartRenderer = Renderer:clone()
 
-function StartRenderer:init()
-	self.fontDescriptions = {
+function StartRenderer:fontDescriptions()
+	return {
 		header = {"fonts/AlegreyaSansSC-Light.ttf", 10},
 		start = {"fonts/AlegreyaSansSC-Light.ttf", 5},
 	}
-
-	Renderer.init(self)
 end
 
 function StartRenderer:draw()
@@ -558,7 +560,7 @@ function StartRenderer:draw()
 
 	love.graphics.printf(
 		"Bucket",
-		self.fonts.header,
+		self:fonts().header,
 		s.cx - s:pct(50),
 		s.cy - s:pct(20),
 		s.smallest,
@@ -567,7 +569,7 @@ function StartRenderer:draw()
 
 	love.graphics.printf(
 		"Press Space to start",
-		self.fonts.start,
+		self:fonts().start,
 		s.cx - s:pct(50),
 		s.cy + s:pct(10),
 		s.smallest,
@@ -575,23 +577,19 @@ function StartRenderer:draw()
 	)
 end
 
-LossRenderer = Renderer:new()
+LossRenderer = Renderer:clone()
 
-function LossRenderer:init(gameScreen, getOpacity)
-	self.gameScreen = gameScreen
-	self.getOpacity = getOpacity
-
-	self.fontDescriptions = {
-		main = {"fonts/AlegreyaSansSC-Light.ttf", 10},
-	}
-
-	Renderer.init(self)
+function LossRenderer:new(gameScreen, getOpacity)
+	return self:extend({
+		gameScreen = gameScreen,
+		getOpacity = getOpacity,
+	})
 end
 
-function LossRenderer:resize()
-	Renderer.resize(self)
-
-	self.gameScreen:resize()
+function LossRenderer:fontDescriptions()
+	return {
+		main = {"fonts/AlegreyaSansSC-Light.ttf", 10},
+	}
 end
 
 function LossRenderer:draw()
@@ -611,7 +609,7 @@ function LossRenderer:draw()
 	love.graphics.setColor(1, 1, 1, self.getOpacity())
 	love.graphics.printf(
 		"Game Over",
-		self.fonts.main,
+		self:fonts().main,
 		s.cx - s:pct(50),
 		s.cy - s:pct(5),
 		s.smallest,
@@ -619,10 +617,12 @@ function LossRenderer:draw()
 	)
 end
 
-ButtonsRenderer = Renderer:new()
+ButtonsRenderer = Renderer:clone()
 
-function ButtonsRenderer:init(getButtons)
-	self.getButtons = getButtons
+function ButtonsRenderer:new(getButtons)
+	return self:extend({
+		getButtons = getButtons,
+	})
 end
 
 function ButtonsRenderer:draw()
@@ -638,10 +638,12 @@ function ButtonsRenderer:draw()
 	end
 end
 
-PieceGalleryRenderer = Renderer:new()
+PieceGalleryRenderer = Renderer:clone()
 
-function PieceGalleryRenderer:init(pieces)
-	self.pieces = pieces
+function PieceGalleryRenderer:new(pieces)
+	return self:extend({
+		pieces = pieces,
+	})
 end
 
 function PieceGalleryRenderer:draw()

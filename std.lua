@@ -98,6 +98,7 @@ function object:extend(o)
 		__index = child__index,
 		__newindex = o.__newindex,
 		__call = o.__call,
+		_parent = self,
 	})
 
 	-- Finally, call the constructor if any.
@@ -106,6 +107,34 @@ function object:extend(o)
 	end
 
 	return o
+end
+
+local _UNCALLED_SENTINEL = {}
+
+function memoized(keyFunc, func)
+	local lastKey = _UNCALLED_SENTINEL
+	local lastVals
+
+	return function(...)
+		local key = {keyFunc(...)}
+		local keyMatches = true
+
+		for i, x in ipairs(key) do
+			if lastKey[i] ~= x then
+				keyMatches = false
+				break
+			end
+		end
+
+		if not keyMatches then
+			lastKey = key
+			local args = list:fromTable({...})
+			args:insertAll(key)
+			lastVals = {func(unpack(args))}
+		end
+
+		return unpack(lastVals)
+	end
 end
 
 list = object:clone()

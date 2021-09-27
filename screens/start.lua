@@ -4,38 +4,41 @@
 -- License, v. 2.0. If a copy of the MPL was not distributed with this
 -- file, You can obtain one at https://mozilla.org/MPL/2.0/.
 --
-local ui = require "ui"
 local graphics = require "graphics"
+local std = require "std"
+local ui = require "ui"
 
 local baseScreen = require "screens/base"
 
-local startScreen = baseScreen:new()
+local startScreen = baseScreen:clone()
 
-function startScreen:init()
-	self.renderers = {
-		graphics.StartRenderer:new(),
-	}
-
-	self.keyInputMap = {
-		space = 'START',
-	}
-
-	baseScreen.init(self)
+function startScreen:new()
+	return self:extend({
+		renderers = {
+			graphics.StartRenderer:clone(),
+		},
+		keyInputMap = {
+			space = 'START',
+		},
+	})
 end
 
-function startScreen:layout()
-	local s = ui.shape
-
-	self.buttons = {
-		ui.button:new(
-			0,
-			0,
-			s.fullWidth,
-			s.fullHeight,
-			function() self:input('START') end
-		),
-	}
-end
+startScreen.layout = std.memoized(
+	function() return ui.shape end,
+	function(self, s)
+		return {
+			buttons = {
+				ui.button:new(
+					0,
+					0,
+					s.fullWidth,
+					s.fullHeight,
+					function() self:input('START') end
+				),
+			},
+		}
+	end
+)
 
 function startScreen:input(input)
 	if input == 'START' then

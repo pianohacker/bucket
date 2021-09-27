@@ -9,23 +9,21 @@ local graphics = require "graphics"
 
 local baseScreen = require "screens/base"
 
-local lossScreen = baseScreen:new()
+local lossScreen = baseScreen:clone()
 
-function lossScreen:init(gameScreen)
-	self.timers = {
-		fadeIn = anim.linearTransition:new(1)
-	}
+function lossScreen:new(gameScreen)
+	return self:extend(function(o)
+		o.timers = {
+			fadeIn = anim.linearTransition:new(1),
+		}
 
-	self.renderers = {
-		graphics.LossRenderer:new(
-			gameScreen,
-			function() return self.timers.fadeIn:range(0, 1) end
-		),
-	}
-end
-
-function lossScreen:update(dt)
-	baseScreen.update(self, dt)
+		o.renderers = {
+			graphics.LossRenderer:new(
+				gameScreen,
+				function() return o.timers.fadeIn:range(0, 1) end
+			),
+		}
+	end)
 end
 
 function lossScreen:keypressed(key)

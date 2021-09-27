@@ -14,14 +14,10 @@ function baseScreen:init()
 end
 
 function baseScreen:layout()
+	return {}
 end
 
 function baseScreen:resize()
-	self:layout()
-
-	for _, renderer in ipairs(self.renderers) do
-		renderer:resize()
-	end
 end
 
 function baseScreen:draw()
@@ -37,7 +33,7 @@ function baseScreen:update(dt)
 end
 
 function baseScreen:mousepressed(x, y)
-	for _, button in pairs(self.buttons or {}) do
+	for _, button in pairs(self:layout().buttons or {}) do
 		if button:within(x, y) then
 			button:pressed()
 			break

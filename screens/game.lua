@@ -28,64 +28,69 @@ local function dropIntervalForLevel(level)
 	return .2 + .3 * ((10 - level) / 9) ^ 2
 end
 
-local gameScreen = baseScreen:new()
+local gameScreen = baseScreen:clone()
 
-function gameScreen:init()
-	self.timers = {
-		drop = anim.interval:new(dropIntervalForLevel(1))
-	}
-	self.timers.drop:increment(dropIntervalForLevel(1))
+function gameScreen:new()
+	return self:extend(function(o)
+		o.timers = {
+			drop = anim.interval:new(dropIntervalForLevel(1))
+		}
+		o.timers.drop:increment(dropIntervalForLevel(1))
 
-	self.board = board:new {
-		width = 8,
-		depth = 10
-	}
-	self.lost = false
-	self.score = 0
-	self.clearedLines = 0
-	self.level = 1
+		o.board = board:new {
+			width = 8,
+			depth = 10
+		}
+		o.lost = false
+		o.score = 0
+		o.clearedLines = 0
+		o.level = 1
 
-	self.renderers = {
-		graphics.BoardRenderer:new(self.board),
-		graphics.PieceHintRenderer:new(
-			function() return self.pieceBag:peek() end
-		),
-		graphics.ScoreRenderer:new(
-			function() return self.level end,
-			function() return self.score end,
-			function() return self.clearedLines end
-		),
-		graphics.ButtonsRenderer:new(
-			function() return self.buttons end
-		)
-	}
+		o.renderers = {
+			graphics.BoardRenderer:new(o.board),
+			graphics.PieceHintRenderer:new(
+				function() return o.pieceBag:peek() end
+			),
+			graphics.ScoreRenderer:new(
+				function() return o.level end,
+				function() return o.score end,
+				function() return o.clearedLines end
+			),
+			graphics.ButtonsRenderer:new(
+				function() return o:layout().buttons end
+			)
+		}
 
-	self.pieceBag = piece.MultiBag:new({
-		[piece.PIECE_SETS.TRI] = 2,
-		[piece.PIECE_SETS.TET] = 7,
-		[piece.PIECE_SETS.PENT] = 1,
-	})
+		o.pieceBag = piece.MultiBag:new({
+			[piece.PIECE_SETS.TRI] = 2,
+			[piece.PIECE_SETS.TET] = 7,
+			[piece.PIECE_SETS.PENT] = 1,
+		})
 
-	self.keyInputMap = {
-		l = 'MOVE_LEFT',
-		a = 'MOVE_RIGHT',
-		e = 'DROP',
-		r = 'ROTATE_LEFT',
-		s = 'ROTATE_RIGHT',
-	}
-
-	baseScreen.init(self)
+		o.keyInputMap = {
+			l = 'MOVE_LEFT',
+			a = 'MOVE_RIGHT',
+			e = 'DROP',
+			r = 'ROTATE_LEFT',
+			s = 'ROTATE_RIGHT',
+		}
+	end)
 end
 
-function gameScreen:layout()
-	self.buttons = {
-		self:newInputButton(5, -5, 10, 10, 'MOVE_LEFT'),
-		self:newInputButton(20, -5, 10, 10, 'MOVE_RIGHT'),
-		self:newInputButton(-5, -5, 25, 10, 'DROP'),
-		self:newInputButton(-20, -20, 10, 10, 'ROTATE_LEFT'),
-		self:newInputButton(-5, -20, 10, 10, 'ROTATE_RIGHT'),
-	}
-end
+gameScreen.layout = std.memoized(
+	function() return ui.shape end,
+	function(self)
+		return {
+			buttons = {
+				self:newInputButton(5, -5, 10, 10, 'MOVE_LEFT'),
+				self:newInputButton(20, -5, 10, 10, 'MOVE_RIGHT'),
+				self:newInputButton(-5, -5, 25, 10, 'DROP'),
+				self:newInputButton(-20, -20, 10, 10, 'ROTATE_LEFT'),
+				self:newInputButton(-5, -20, 10, 10, 'ROTATE_RIGHT'),
+			},
+		}
+	end
+)
 
 function gameScreen:updateScore(horizCleared, vertCleared)
 	local horizAndVerticalBonus = 0

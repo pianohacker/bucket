@@ -76,6 +76,109 @@ notion("object falls back to normal access if custom access returns nothing", fu
 	check(o1.b):is(2)
 end)
 
+notion("memoized calls a function once while its key stays the same", function()
+	local key = 0
+	local timesCalled = 0
+	local f = std.memoized(
+		function() return key end,
+		function()
+			timesCalled = timesCalled + 1
+		end
+	)
+
+	f()
+	f()
+	check(timesCalled):is(1)
+	key = 1
+	f()
+	check(timesCalled):is(2)
+end)
+
+notion("memoized saves the last returned value", function()
+	local lastI = 0
+	local function i()
+		lastI = lastI + 1
+		return lastI
+	end
+
+	local key = 'first'
+	local f = std.memoized(
+		function() return key end,
+		function()
+			return i()
+		end
+	)
+
+	check(f()):is(1)
+	check(f()):is(1)
+	key = 'second'
+	check(f()):is(2)
+end)
+
+notion("memoized can return multiple values", function()
+	local f = std.memoized(
+		function() return 0 end,
+		function()
+			return 1, 2
+		end
+	)
+
+	check(f()):is(1, 2)
+	check(f()):is(1, 2)
+end)
+
+notion("memoized forwards arguments", function()
+	local f = std.memoized(
+		function() return 0 end,
+		function(a, b)
+			return a, b
+		end
+	)
+
+	check(f(1, 2)):is(1, 2)
+	check(f()):is(1, 2)
+end)
+
+notion("memoized forwards arguments to key function", function()
+	local f = std.memoized(
+		function(a, b) return a + b end,
+		function(a, b, c)
+			return a, b, c
+		end
+	)
+
+	check(f(1, 2, 3)):is(1, 2, 3)
+	check(f(1, 2, 4)):is(1, 2, 3)
+	check(f(2, 1, 5)):is(1, 2, 3)
+	check(f(1, 1, 6)):is(1, 1, 6)
+end)
+
+notion("memoized forwards results of key function to function", function()
+	local f = std.memoized(
+		function(a, b) return a + b end,
+		function(a, b, c, d)
+			return a, b, c, d
+		end
+	)
+
+	check(f(1, 2, 4)):is(1, 2, 4, 3)
+	check(f(3, 0, 4)):is(1, 2, 4, 3)
+	check(f(6, 1, 5)):is(6, 1, 5, 7)
+end)
+
+notion("memoized key function can return multiple values", function()
+	local f = std.memoized(
+		function(a, b) return a, b end,
+		function(a, b, c)
+			return a, b, c
+		end
+	)
+
+	check(f(1, 2, 3)):is(1, 2, 3)
+	check(f(1, 2, 4)):is(1, 2, 3)
+	check(f(1, 3, 5)):is(1, 3, 5)
+end)
+
 notion("list:fromTable can build a disconnected list from a table", function()
 	local reference = std.list:clone()
 	reference:insert(4)
