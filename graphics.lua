@@ -7,6 +7,7 @@
 module("graphics", package.seeall)
 
 local std = require("std")
+local ui = require "ui"
 
 local function lerp2(a, b, t)
 	return {b[1] * t + a[1] * (1-t), b[2] * t + a[2] * (1-t)}
