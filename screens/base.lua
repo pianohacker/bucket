@@ -47,10 +47,18 @@ function baseScreen:keypressed(key, _, _)
 	end
 end
 
-function baseScreen:newInputButton(x, y, width, height, input)
+function baseScreen:newInputButton(x, y, width, height, input, label)
 	x, y, width, height = ui.shape:relPctCoords(x, y, width, height)
 
-	return ui.button:new(x, y, width, height, function() self:input(input) end)
+	return ui.button:new(
+		x,
+		y,
+		width,
+		height,
+		function() self:input(input) end
+	):extend({
+		label = label,
+	})
 end
 
 return baseScreen

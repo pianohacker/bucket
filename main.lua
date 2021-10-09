@@ -8,23 +8,22 @@ local cute = require "cute"
 local ui = require "ui"
 
 profilerState = {
-	fpsEnabled = (os.getenv("BUCKET_SHOW_FPS") and true or false),
+	fpsEnabled = (os.getenv("BUCKET_SHOW_FPS") and true or true),
 	enabled = (os.getenv("BUCKET_PROFILE") and true or false),
 	frame = 0,
-	reportEvery = 240,
+	reportEvery = 60,
 }
 
 function love.load(args)
 	cute.go(args)
 
 	if profilerState.enabled then
+		profilerState.frame = 0
 		-- jit.off()
 		-- profilerState.profiler = require("profile.profile")
 		-- profilerState.profiler.start()
-		-- profilerState.frame = 0
 		profilerState.profiler = require("profiler")
 		profilerState.profiler.start()
-		profilerState.frame = 0
 	end
 
 	love.keyboard.setKeyRepeat(true)
@@ -65,9 +64,11 @@ function love.update(dt)
 		profilerState.frame = profilerState.frame + 1
 		
 		if profilerState.frame == profilerState.reportEvery then
+			profilerState.frame = 0
 			print(("-"):rep(tonumber(os.getenv("COLUMNS") or "80")))
 			print(profilerState.profiler.format_result())
-			profilerState.frame = 0
+			-- print(profilerState.profiler.report())
+			-- profilerState.profiler.report()
 		end
 	end
 end

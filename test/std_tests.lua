@@ -179,6 +179,39 @@ notion("memoized key function can return multiple values", function()
 	check(f(1, 3, 5)):is(1, 3, 5)
 end)
 
+notion("memoizedMember calls a function once per object", function()
+	local key = 0
+	local result = 0
+
+	local base = std.object:extend({
+		memoized = std.memoizedMember(
+			function() return key end,
+			function() return result end
+		)
+	})
+
+	local o1 = base:extend({o = 1})
+	local o2 = base:extend({o = 2})
+
+	check(o1:memoized()):is(0)
+	check(o2:memoized()):is(0)
+
+	result = 1
+	check(o1:memoized()):is(0)
+	check(o2:memoized()):is(0)
+
+	key = 1
+	check(o1:memoized()):is(1)
+	check(o2:memoized()):is(1)
+
+	key = 2
+	result = 2
+	check(o1:memoized()):is(2)
+
+	result = 3
+	check(o2:memoized()):is(3)
+end)
+
 notion("list:fromTable can build a disconnected list from a table", function()
 	local reference = std.list:clone()
 	reference:insert(4)

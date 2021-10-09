@@ -109,16 +109,12 @@ function object:extend(o)
 	return o
 end
 
-local _UNCALLED_SENTINEL = {}
-
-function memoized(keyFunc, func)
-	local lastKey = _UNCALLED_SENTINEL
-	local lastVals
-
+function memoizedBase(keyFunc, func, getKeysAndVals, setKeysAndVals)
 	return function(...)
 		local key = {keyFunc(...)}
 		local keyMatches = true
 
+		local lastKey, lastVals = getKeysAndVals(...)
 		for i, x in ipairs(key) do
 			if lastKey[i] ~= x then
 				keyMatches = false
@@ -131,10 +127,43 @@ function memoized(keyFunc, func)
 			local args = list:fromTable({...})
 			args:insertAll(key)
 			lastVals = {func(unpack(args))}
+			setKeysAndVals(lastKey, lastVals, ...)
 		end
 
 		return unpack(lastVals)
 	end
+end
+
+function memoized(keyFunc, func)
+	local lastKey = {}
+	local lastVals
+
+	return memoizedBase(
+		keyFunc,
+		func,
+		function() return lastKey, lastVals end,
+		function(k, v)
+			lastKey = k
+			lastVals = v
+		end
+	)
+end
+
+function memoizedMember(keyFunc, func)
+	local lastKeys = {}
+	local lastVals = {}
+
+	return memoizedBase(
+		keyFunc,
+		func,
+		function(self)
+			return lastKeys[self] or {}, lastVals[self]
+		end,
+		function(k, v, self)
+			lastKeys[self] = k
+			lastVals[self] = v
+		end
+	)
 end
 
 list = object:clone()

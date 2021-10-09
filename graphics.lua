@@ -35,8 +35,8 @@ function Renderer:fontDescriptions()
 	return {}
 end
 
-Renderer.fonts = std.memoized(
-	function(self) return ui.shape, self end,
+Renderer.fonts = std.memoizedMember(
+	function(self) return ui.shape end,
 	function(self, s)
 		local fonts = {}
 		for key, description in pairs(self.fontDescriptions()) do
@@ -427,7 +427,7 @@ end
 
 function PieceHintRenderer:fontDescriptions()
 	return {
-		main = {"fonts/AlegreyaSansSC-Medium.ttf", 6},
+		main = {"fonts/AlegreyaSansSC-Light.ttf", 6},
 	}
 end
 
@@ -628,16 +628,37 @@ function ButtonsRenderer:new(getButtons)
 	})
 end
 
+function ButtonsRenderer:fontDescriptions()
+	return {
+		main = {"fonts/AlegreyaSansSC-Medium.ttf", 10},
+	}
+end
+
 function ButtonsRenderer:draw()
+	local s = ui.shape
+
 	love.graphics.setColor(1, 1, 1, .8)
 	for _, button in ipairs(self.getButtons()) do
 		love.graphics.rectangle(
 			'line',
 			button.x,
-			button.y,
+			button.y + s:pct(.5),
 			button.width,
-			button.height
+			button.height,
+			s:pct(1),
+			s:pct(1)
 		)
+
+		if button.label ~= nil then
+			love.graphics.printf(
+				button.label,
+				self:fonts().main,
+				button.x,
+				button.y,
+				button.width,
+				"center"
+			)
+		end
 	end
 end
 
