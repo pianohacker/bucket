@@ -14,6 +14,15 @@ function UiShape:pct(p)
 	return self.smallest * p / 100
 end
 
+function UiShape:pctAccum()
+	local p = 0
+
+	return function(delta)
+		p = p + delta
+		return self:pct(p)
+	end
+end
+
 -- This is a poor replacement for an actual gravity/anchor system.
 function UiShape:relPctCoords(x, y, width, height)
 	local realX

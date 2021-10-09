@@ -49,6 +49,22 @@ Renderer.fonts = std.memoized(
 	end
 )
 
+function memoizedCanvasRenderer(key, renderFunc)
+	return std.memoized(
+		key,
+		function(...)
+			local canvas = love.graphics.newCanvas()
+			love.graphics.setCanvas(canvas)
+
+			renderFunc(...)
+
+			love.graphics.setCanvas()
+
+			return canvas
+		end
+	)
+end
+
 local B_TOP_RADIUS = 0.4 -- Radius of outside of board as a proportion of the screen.
 local B_TOP_CORNERNESS = 0.15 -- Amount that corners are drawn out.
 local B_BOTTOM_RADIUS = 0.18 -- Radius of bottom of board as a proportion of the screen.
@@ -254,40 +270,38 @@ function BoardRenderer:drawPieceShadow()
 	end
 end
 
-function BoardRenderer:updateBackgroundGraphics()
-	self.backgroundCanvas = love.graphics.newCanvas()
-	love.graphics.setCanvas(self.backgroundCanvas)
+BoardRenderer.renderBackgroundGraphics = memoizedCanvasRenderer(
+	function(self) return self.board.pieceGeneration, ui.shape end,
+	function(self)
+		if true then
+			if self.board.piece then
+				self:drawPieceShadow()
+			end
+		else
+			love.graphics.setColor(hexToRgba(B_BG_PATH_COLOR))
+			if self.board.piece and self.board.pieceR - self.board.piece.height >= 0 then
+				self:drawSide(self.board:side(self.board.pieceT))
+			end
 
-	if true then
-		if self.board.piece then
-			self:drawPieceShadow()
-		end
-	else
-		love.graphics.setColor(hexToRgba(B_BG_PATH_COLOR))
-		if self.board.piece and self.board.pieceR - self.board.piece.height >= 0 then
-			self:drawSide(self.board:side(self.board.pieceT))
-		end
-
-		love.graphics.polygon(
-			'fill',
-			unpackEach(
-				self:bottomGridPoint(1, 1),
-				self:bottomGridPoint(self.board.width + 1, 1),
-				self:bottomGridPoint(self.board.width + 1, self.board.width + 1),
-				self:bottomGridPoint(1, self.board.width + 1)
+			love.graphics.polygon(
+				'fill',
+				unpackEach(
+					self:bottomGridPoint(1, 1),
+					self:bottomGridPoint(self.board.width + 1, 1),
+					self:bottomGridPoint(self.board.width + 1, self.board.width + 1),
+					self:bottomGridPoint(1, self.board.width + 1)
+				)
 			)
-		)
-	end
+		end
 
-	love.graphics.setColor(hexToRgba(B_BG_BLOCKED_COLOR))
-	for side = 1,4 do
-		if self.board:isSideBlocked(side) then
-			self:drawSide(side)
+		love.graphics.setColor(hexToRgba(B_BG_BLOCKED_COLOR))
+		for side = 1,4 do
+			if self.board:isSideBlocked(side) then
+				self:drawSide(side)
+			end
 		end
 	end
-
-	love.graphics.setCanvas()
-end
+)
 
 function BoardRenderer:drawSquareGraphics()
 	for t, r, color in self.board:iterOccupiedSquares() do
@@ -370,49 +384,36 @@ function BoardRenderer:drawGridLineGraphics()
 	end
 end
 
-function BoardRenderer:updateGridGraphics()
-	self.gridCanvas = love.graphics.newCanvas()
-	love.graphics.setCanvas(self.gridCanvas)
-
-	self:drawSquareGraphics()
-	self:drawGridLineGraphics()
-
-	love.graphics.setCanvas()
-end
-
-function BoardRenderer:updatePieceGraphics()
-	self.pieceCanvas = love.graphics.newCanvas()
-
-	if not self.board.piece then return end
-
-	love.graphics.setCanvas(self.pieceCanvas)
-
-	love.graphics.setColor(hexToRgba(self.board.piece.color))
-	for t, r in self.board:iterPieceSquares() do
-		self:drawSquare(t, r)
+BoardRenderer.renderGridGraphics = memoizedCanvasRenderer(
+	function(self) return self.board.gridGeneration, ui.shape end,
+	function(self)
+		self:drawSquareGraphics()
+		self:drawGridLineGraphics()
 	end
+)
 
-	love.graphics.setCanvas()
-end
+BoardRenderer.renderPieceGraphics = memoizedCanvasRenderer(
+	function(self) return self.board.pieceGeneration, ui.shape end,
+	function(self)
+		if not self.board.piece then return end
+
+		love.graphics.setColor(hexToRgba(self.board.piece.color))
+		for t, r in self.board:iterPieceSquares() do
+			self:drawSquare(t, r)
+		end
+	end
+)
 
 function BoardRenderer:draw()
-	if self.lastDrawnPieceGeneration < self.board.pieceGeneration then
-		self:updateBackgroundGraphics()
-		self:updatePieceGraphics()
-	end
-
-	if self.lastDrawnGridGeneration < self.board.gridGeneration then
-		self:updateGridGraphics()
-	end
-
-	self.lastDrawnPieceGeneration = self.board.pieceGeneration
-	self.lastDrawnGridGeneration = self.board.gridGeneration
+	local backgroundCanvas = self:renderBackgroundGraphics()
+	local pieceCanvas = self:renderPieceGraphics()
+	local gridCanvas = self:renderGridGraphics()
 
 	love.graphics.setColor(1, 1, 1, 1)
 	love.graphics.setBlendMode('alpha', 'premultiplied')
-	love.graphics.draw(self.backgroundCanvas)
-	love.graphics.draw(self.pieceCanvas)
-	love.graphics.draw(self.gridCanvas)
+	love.graphics.draw(backgroundCanvas)
+	love.graphics.draw(pieceCanvas)
+	love.graphics.draw(gridCanvas)
 	love.graphics.setBlendMode('alpha')
 end
 
@@ -426,7 +427,7 @@ end
 
 function PieceHintRenderer:fontDescriptions()
 	return {
-		main = {"fonts/AlegreyaSansSC-Medium.ttf", 5},
+		main = {"fonts/AlegreyaSansSC-Medium.ttf", 6},
 	}
 end
 
@@ -452,7 +453,7 @@ end
 function PieceHintRenderer:draw()
 	local s = ui.shape
 
-	local width = s:pct(15)
+	local width = s:pct(20)
 	local hintX = s.fullWidth - s:pct(5) - width
 
 	love.graphics.printf(
@@ -465,7 +466,7 @@ function PieceHintRenderer:draw()
 	)
 
 	local p = self.getNextPiece()
-	local pieceY = s:pct(9)
+	local pieceY = s:pct(10)
 	local gridSize = width / 4
 
 	drawPiece(p, hintX, pieceY,  gridSize)
@@ -483,8 +484,8 @@ end
 
 function ScoreRenderer:fontDescriptions()
 	return {
-		title = {"fonts/AlegreyaSansSC-Medium.ttf", 5},
-		main = {"fonts/AlegreyaSansSC-Light.ttf", 4},
+		title = {"fonts/AlegreyaSansSC-Light.ttf", 6},
+		main = {"fonts/AlegreyaSansSC-Medium.ttf", 5},
 	}
 end
 
@@ -492,6 +493,7 @@ function ScoreRenderer:draw()
 	local s = ui.shape
 
 	local width = s:pct(15)
+	local addPct = s:pctAccum()
 
 	love.graphics.setColor(1, 1, 1, 1)
 
@@ -499,51 +501,51 @@ function ScoreRenderer:draw()
 		"Level",
 		self:fonts().title,
 		s:pct(5),
-		s:pct(3),
+		addPct(3),
 		width,
-		"center"
+		"left"
 	)
 	love.graphics.printf(
 		self.getLevel(),
 		self:fonts().main,
 		s:pct(5),
-		s:pct(8),
+		addPct(5.5),
 		width,
-		"center"
+		"left"
 	)
 
 	love.graphics.printf(
 		"Score",
 		self:fonts().title,
 		s:pct(5),
-		s:pct(12),
+		addPct(6.5),
 		width,
-		"center"
+		"left"
 	)
 	love.graphics.printf(
 		self.getScore(),
 		self:fonts().main,
 		s:pct(5),
-		s:pct(17),
+		addPct(5.5),
 		width,
-		"center"
+		"left"
 	)
 
 	love.graphics.printf(
 		"Lines",
 		self:fonts().title,
 		s:pct(5),
-		s:pct(21),
+		addPct(6.5),
 		width,
-		"center"
+		"left"
 	)
 	love.graphics.printf(
 		self.getClearedLines(),
 		self:fonts().main,
 		s:pct(5),
-		s:pct(25),
+		addPct(5.5),
 		width,
-		"center"
+		"left"
 	)
 end
 
@@ -609,7 +611,7 @@ function LossRenderer:draw()
 
 	love.graphics.setColor(1, 1, 1, self.getOpacity())
 	love.graphics.printf(
-		"Game Over",
+		"Game  Over",
 		self:fonts().main,
 		s.cx - s:pct(50),
 		s.cy - s:pct(5),
