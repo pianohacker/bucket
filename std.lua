@@ -50,11 +50,21 @@ function dump(...)
 	io.write("\n")
 end
 
+--- Basic prototype-OOP base object. 
 object = {}
+--- Make a child of this object without any changes.
 function object:clone()
 	return self:extend({})
 end
 
+--- Make a child of this object with extra fields.
+-- All special metatable keys (__index, __add, etc.) can be set on the object or any of its parents
+-- and will be copied to the resulting object's metatable.
+--
+-- The metatable will also have an extra key, _parent, pointing to the parent object.
+--
+-- @param o Either a table of extra fields to be added to the resulting object, or a function that
+-- will be called with the object before it is returned.
 function object:extend(o)
 	local constructor = nil
 
@@ -109,7 +119,7 @@ function object:extend(o)
 	return o
 end
 
-function memoizedBase(keyFunc, func, getKeysAndVals, setKeysAndVals)
+local function memoizedBase(keyFunc, func, getKeysAndVals, setKeysAndVals)
 	return function(...)
 		local key = {keyFunc(...)}
 		local keyMatches = true
@@ -134,6 +144,9 @@ function memoizedBase(keyFunc, func, getKeysAndVals, setKeysAndVals)
 	end
 end
 
+--- Create a function memoized against the given key function.
+-- `func` will be called only once, and its result cached, as long as the result of `keyFunc` does
+-- not change.
 function memoized(keyFunc, func)
 	local lastKey = {}
 	local lastVals
@@ -149,6 +162,8 @@ function memoized(keyFunc, func)
 	)
 end
 
+--- Create a member function memoized against the given key function.
+-- Similar to `memoized`, but results are cached per-object.
 function memoizedMember(keyFunc, func)
 	local lastKeys = {}
 	local lastVals = {}
@@ -166,6 +181,7 @@ function memoizedMember(keyFunc, func)
 	)
 end
 
+--- Light wrapper around list tables.
 list = object:clone()
 list.concat = table.concat
 list.insert = table.insert
@@ -173,6 +189,7 @@ list.maxn = table.maxn
 list.remove = table.remove
 list.sort = table.sort
 
+--- Creates a list from the given table.
 function list:fromTable(t)
 	local o = {}
 
@@ -183,6 +200,7 @@ function list:fromTable(t)
 	return self:extend(o)
 end
 
+--- Returns an iterator over the values of the list.
 function list:values()
 	local i = 0
 
@@ -198,6 +216,7 @@ function list:values()
 	return iter
 end
 
+--- Returns true if all members of the list are true.
 function list:all()
 	for x in self:values() do
 		if not x then
@@ -208,6 +227,7 @@ function list:all()
 	return true
 end
 
+--- Shuffles the list in-place.
 function list:shuffle()
 	for i = 1,#self do
 		local j = love.math.random(i, #self)
@@ -218,6 +238,7 @@ function list:shuffle()
 	end
 end
 
+--- Reverses the list in-place.
 function list:reverse()
 	for i = 1,math.floor(#self/2) do
 		local j = #self - i + 1
@@ -228,12 +249,15 @@ function list:reverse()
 	end
 end
 
+--- Appends all elements from the given list/table to the list.
 function list:insertAll(t)
 	for _, x in ipairs(t) do
 		self:insert(x)
 	end
 end
 
+--- 2D grid of a fixed size.
+-- If `DEBUG_ASSERTS` is true, will check bounds on all accesses.
 grid = object:clone()
 
 local function newCheckedGridColumn(g, x)
@@ -304,6 +328,7 @@ function grid:clear()
 	end
 end
 
+--- Returns all values in the given row as a `list`.
 function grid:row(y)
 	local result = list:clone()
 
@@ -314,6 +339,7 @@ function grid:row(y)
 	return result
 end
 
+--- Returns all values in the given column as a `list`.
 function grid:col(x)
 	local result = list:clone()
 
