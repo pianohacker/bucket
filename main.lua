@@ -8,7 +8,7 @@ local cute = require "cute"
 local ui = require "ui"
 
 profilerState = {
-	fpsEnabled = (os.getenv("BUCKET_SHOW_FPS") and true or true),
+	fpsEnabled = (os.getenv("BUCKET_SHOW_FPS") and true or false),
 	enabled = (os.getenv("BUCKET_PROFILE") and true or false),
 	frame = 0,
 	reportEvery = 60,
