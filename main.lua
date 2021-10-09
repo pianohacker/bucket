@@ -18,8 +18,11 @@ function love.load(args)
 	cute.go(args)
 
 	if profilerState.enabled then
-		jit.off()
-		profilerState.profiler = require("profile.profile")
+		-- jit.off()
+		-- profilerState.profiler = require("profile.profile")
+		-- profilerState.profiler.start()
+		-- profilerState.frame = 0
+		profilerState.profiler = require("profiler")
 		profilerState.profiler.start()
 		profilerState.frame = 0
 	end
@@ -62,9 +65,9 @@ function love.update(dt)
 		profilerState.frame = profilerState.frame + 1
 		
 		if profilerState.frame == profilerState.reportEvery then
+			print(("-"):rep(tonumber(os.getenv("COLUMNS") or "80")))
+			print(profilerState.profiler.format_result())
 			profilerState.frame = 0
-			print(profilerState.profiler.report())
-			profilerState.profiler.report()
 		end
 	end
 end
