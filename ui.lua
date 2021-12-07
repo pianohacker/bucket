@@ -43,7 +43,7 @@ function UiShape:relPctCoords(x, y, width, height)
 end
 
 ui = {
-	isMobile = love.system.getOS() == 'Android' or love.system.getOS() == 'iOS',
+	isMobile = (not not os.getenv("BUCKET_FORCE_MOBILE")) or love.system.getOS() == 'Android' or love.system.getOS() == 'iOS',
 }
 
 function ui:switchScreen(newScreen)

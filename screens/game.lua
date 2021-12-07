@@ -80,6 +80,10 @@ end
 gameScreen.layout = std.memoized(
 	function() return ui.shape end,
 	function(self)
+		if not ui.isMobile then
+			return { buttons = {} }
+		end
+
 		return {
 			buttons = {
 				self:newInputButton(5, -5, 10, 10, 'ROTATE_LEFT', '↙'),
