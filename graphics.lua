@@ -284,7 +284,7 @@ BoardRenderer.renderGridAnimationsGraphics = memoizedCanvasRenderer(
 		local gridLayout = self:gridLayout()
 
 		local r, g, b, _ = hexToRgba(B_BG_FLASH_COLOR)
-		love.graphics.setColor(r, g, b, t * .8)
+		love.graphics.setColor(r, g, b, t * .6)
 		for y in h:values() do
 			love.graphics.polygon(
 				'fill',
