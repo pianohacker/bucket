@@ -366,14 +366,14 @@ function board:clearLines()
 
 	local xMap = {}
 	local yMap = {}
-	local horizCleared = 0
-	local vertCleared = 0
+	local horizCleared = std.list:clone()
+	local vertCleared = std.list:clone()
 
 	local xRightShift = 0
 	for x = math.ceil(self.width/2),1,-1 do
 		if self.lowerGrid:col(x):all() then
 			xRightShift = xRightShift + 1
-			vertCleared = vertCleared + 1
+			vertCleared:insert(x)
 		else
 			xMap[x] = x + xRightShift
 		end
@@ -386,7 +386,7 @@ function board:clearLines()
 	for x = math.ceil(self.width/2)+1,self.width do
 		if self.lowerGrid:col(x):all() then
 			xLeftShift = xLeftShift + 1
-			vertCleared = vertCleared + 1
+			vertCleared:insert(x)
 		else
 			xMap[x] = x - xLeftShift
 		end
@@ -399,7 +399,7 @@ function board:clearLines()
 	for y = math.ceil(self.width/2),1,-1 do
 		if self.lowerGrid:row(y):all() then
 			yDownShift = yDownShift + 1
-			horizCleared = horizCleared + 1
+			horizCleared:insert(y)
 		else
 			yMap[y] = y + yDownShift
 		end
@@ -412,7 +412,7 @@ function board:clearLines()
 	for y = math.ceil(self.width/2)+1,self.width do
 		if self.lowerGrid:row(y):all() then
 			yUpShift = yUpShift + 1
-			horizCleared = horizCleared + 1
+			horizCleared:insert(y)
 		else
 			yMap[y] = y - yUpShift
 		end
@@ -421,8 +421,8 @@ function board:clearLines()
 		yMap[y] = y - yUpShift
 	end
 
-	if horizCleared == 0 and vertCleared == 0 then
-		return 0, 0
+	if #horizCleared == 0 and #vertCleared == 0 then
+		return horizCleared, vertCleared
 	end
 
 	local oldLowerGrid = self.lowerGrid

@@ -33,7 +33,8 @@ local gameScreen = baseScreen:clone()
 function gameScreen:new()
 	return self:extend(function(o)
 		o.timers = {
-			drop = anim.interval:new(dropIntervalForLevel(1))
+			drop = anim.interval:new(dropIntervalForLevel(1)),
+			flashCleared = anim.sharpInOutTransition:new(.05, .4):asStopped()
 		}
 		o.timers.drop:increment(dropIntervalForLevel(1))
 
@@ -45,9 +46,19 @@ function gameScreen:new()
 		o.score = 0
 		o.clearedLines = 0
 		o.level = 1
+		o.lastClearedLines = {}
 
 		o.renderers = {
-			graphics.BoardRenderer:new(o.board),
+			graphics.BoardRenderer:new(
+				o.board,
+				function()
+					if o.timers.flashCleared:finished() then
+						return
+					end
+
+					return o.timers.flashCleared:range(0, 1), o.lastClearedLines
+				end
+			),
 			graphics.PieceHintRenderer:new(
 				function() return o.pieceBag:peek() end
 			),
@@ -121,9 +132,15 @@ function gameScreen:dropPiece()
 	elseif not self.board:dropPiece() then
 		self.board:setPiece()
 		local horizCleared, vertCleared = self.board:clearLines()
-		self:updateScore(horizCleared, vertCleared)
-		local justClearedLines = horizCleared + vertCleared
+		self:updateScore(#horizCleared, #vertCleared)
+
+		local justClearedLines = #horizCleared + #vertCleared
 		self.clearedLines = self.clearedLines + justClearedLines
+
+		if justClearedLines ~= 0 then
+			self.lastClearedLines = {horizCleared, vertCleared}
+			self.timers.flashCleared:restart()
+		end
 
 		if math.floor((self.clearedLines + justClearedLines) / LEVEL_ADVANCE_LINES) > math.floor(self.clearedLines / LEVEL_ADVANCE_LINES) then
 			self.level = self.level + 1

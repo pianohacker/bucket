@@ -541,7 +541,7 @@ notion("clearLines clears and shifts squares on walls", function()
 	]])
 end)
 
-notion("clearLines returns the number of lines cleared in each direction", function()
+notion("clearLines returns the lines cleared in each direction", function()
 	local b = boardFrom [[
 		   █▀▀▀▀▀█
 		▄▄▄█     █▄▄▄
@@ -551,7 +551,9 @@ notion("clearLines returns the number of lines cleared in each direction", funct
 		   █     █
 		   ▀▀▀▀▀▀▀
 	]]
-	check(b:clearLines()):is(0, 2)
+	local h, v = b:clearLines()
+	check(h):shallowMatches({})
+	check(v):shallowMatches({2, 4})
 
 	b = boardFrom [[
 		   █▀▀▀▀▀█
@@ -562,7 +564,9 @@ notion("clearLines returns the number of lines cleared in each direction", funct
 		   █     █
 		   ▀▀▀▀▀▀▀
 	]]
-	check(b:clearLines()):is(2, 0)
+	local h, v = b:clearLines()
+	check(h):shallowMatches({2, 4})
+	check(v):shallowMatches({})
 
 	b = boardFrom [[
 		   █▀▀▀▀▀█
@@ -573,7 +577,9 @@ notion("clearLines returns the number of lines cleared in each direction", funct
 		   █     █
 		   ▀▀▀▀▀▀▀
 	]]
-	check(b:clearLines()):is(1, 1)
+	local h, v = b:clearLines()
+	check(h):shallowMatches({3})
+	check(v):shallowMatches({3})
 end)
 
 notion("isSideBlocked detects squares anywhere in side", function()

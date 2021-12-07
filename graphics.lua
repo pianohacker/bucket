@@ -73,17 +73,17 @@ local B_GRID_COLOR = "#181818"
 local B_BG_PATH_COLOR = "#0B0B0B"
 local B_BG_SHADOW_COLOR = "#181818"
 local B_BG_BLOCKED_COLOR = "#331111"
+local B_BG_FLASH_COLOR = "#BBBBBB"
 local B_GRID_HIGHLIGHT_COLOR = "#888888"
 
 GridLayout = std.object:clone()
 
 BoardRenderer = Renderer:clone()
 
-function BoardRenderer:new(board) 
+function BoardRenderer:new(board, getClearedLineFlash) 
 	return self:extend({
 		board = board,
-		lastDrawnPieceGeneration = 0,
-		lastDrawnGridGeneration = 0,
+		getClearedLineFlash = getClearedLineFlash,
 	})
 end
 
@@ -270,6 +270,47 @@ function BoardRenderer:drawPieceShadow()
 	end
 end
 
+BoardRenderer.renderGridAnimationsGraphics = memoizedCanvasRenderer(
+	function(self)
+		local t, lastClearedLines = self.getClearedLineFlash()
+		return t, lastClearedLines, ui.shape
+	end,
+	function(self, t, lastClearedLines)
+		if t == nil or t == 0 then
+			return
+		end
+
+		local h, v = unpack(lastClearedLines)
+		local gridLayout = self:gridLayout()
+
+		local r, g, b, _ = hexToRgba(B_BG_FLASH_COLOR)
+		love.graphics.setColor(r, g, b, t * .8)
+		for y in h:values() do
+			love.graphics.polygon(
+				'fill',
+				unpackEach(
+					gridLayout:bottomGridPoint(1, y),
+					gridLayout:bottomGridPoint(1, y + 1),
+					gridLayout:bottomGridPoint(self.board.width + 1, y + 1),
+					gridLayout:bottomGridPoint(self.board.width + 1, y)
+				)
+			)
+		end
+
+		for x in v:values() do
+			love.graphics.polygon(
+				'fill',
+				unpackEach(
+					gridLayout:bottomGridPoint(x, 1),
+					gridLayout:bottomGridPoint(x + 1, 1),
+					gridLayout:bottomGridPoint(x + 1, self.board.width + 1),
+					gridLayout:bottomGridPoint(x, self.board.width + 1)
+				)
+			)
+		end
+	end
+)
+
 BoardRenderer.renderBackgroundGraphics = memoizedCanvasRenderer(
 	function(self) return self.board.pieceGeneration, ui.shape end,
 	function(self)
@@ -406,12 +447,14 @@ BoardRenderer.renderPieceGraphics = memoizedCanvasRenderer(
 
 function BoardRenderer:draw()
 	local backgroundCanvas = self:renderBackgroundGraphics()
+	local gridAnimationCanvas = self:renderGridAnimationsGraphics()
 	local pieceCanvas = self:renderPieceGraphics()
 	local gridCanvas = self:renderGridGraphics()
 
 	love.graphics.setColor(1, 1, 1, 1)
 	love.graphics.setBlendMode('alpha', 'premultiplied')
 	love.graphics.draw(backgroundCanvas)
+	love.graphics.draw(gridAnimationCanvas)
 	love.graphics.draw(pieceCanvas)
 	love.graphics.draw(gridCanvas)
 	love.graphics.setBlendMode('alpha')

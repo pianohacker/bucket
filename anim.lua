@@ -14,6 +14,12 @@ interval = std.object:extend({
 		return self:extend({ length = length })
 	end,
 
+	asStopped = function(self)
+		self:stop()
+
+		return self
+	end,
+
 	resize = function(self, length)
 		self.length = length
 	end,
@@ -51,19 +57,42 @@ interval = std.object:extend({
 	reset = function(self)
 		self.elapsed = 0
 	end,
-})
 
-linearTransition = std.object:extend({
-	elapsed = 0,
-	new = function(self, length)
-		return self:extend({ length = length })
+	restart = function(self)
+		self:start()
+		self:reset()
 	end,
 
-	increment = function(self, dt)
-		self.elapsed = math.min(self.elapsed + dt, self.length)
+	finished = function(self)
+		return self.elapsed > self.length
+	end,
+})
+
+linearTransition = interval:extend({
+	range = function(self, min, max)
+		if self:finished() then return max end
+
+		return min + (max - min) * self.elapsed / self.length
+	end,
+})
+
+sharpInOutTransition = interval:extend({
+	new = function(self, inLength, outLength)
+		return self:extend({
+			inLength = inLength,
+			outLength = outLength,
+			length = inLength + outLength,
+		})
 	end,
 
 	range = function(self, min, max)
-		return min + (max - min) * self.elapsed / self.length
+		local t = 0
+		if self.elapsed <= self.inLength then
+			t = self.elapsed / self.inLength
+		elseif self.elapsed <= self.length then
+			t = (1 - (self.elapsed - self.inLength) / self.outLength)
+		end
+
+		return min + (max - min) * t * t
 	end,
 })

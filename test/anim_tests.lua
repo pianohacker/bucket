@@ -62,6 +62,26 @@ notion("interval can be reset", function()
 	check(i:firing()):is(true)
 end)
 
+notion("interval can be restarted", function()
+	local i = anim.interval:new(.8)
+	i:increment(.9)
+
+	i:restart()
+	check(i:firing()):is(false)
+
+	i:increment(.8)
+	check(i:firing()):is(true)
+
+	i:reset()
+	i:stop()
+	i:increment(.8)
+	check(i:firing()):is(false)
+
+	i:restart()
+	i:increment(.8)
+	check(i:firing()):is(true)
+end)
+
 notion("interval can be resized", function()
 	local i = anim.interval:new(.8)
 	i:increment(.7)
@@ -79,12 +99,15 @@ end)
 notion("linearTransition interpolates between bounds", function()
 	local i = anim.linearTransition:new(.5)
 	check(i:range(0, 100)):is(0)
+	check(i:finished()):is(false)
 
 	i:increment(.1)
 	check(i:range(0, 100)):is(20)
+	check(i:finished()):is(false)
 
 	i:increment(.15)
 	check(i:range(0, 100)):is(50)
+	check(i:finished()):is(false)
 
 	i:increment(.25)
 	check(i:range(0, 100)):is(100)
@@ -95,5 +118,41 @@ notion("linearTransition clamps at end", function()
 
 	i:increment(.7)
 	check(i:range(0, 100)):is(100)
+	check(i:finished()):is(true)
 end)
 
+notion("linearTransition can be created stopped", function()
+	local i = anim.linearTransition:new(.5):asStopped()
+
+	i:increment(.7)
+	check(i:range(0, 100)):is(0)
+	check(i:finished()):is(false)
+end)
+
+notion("sharpInOutTransition interpolates between bounds", function()
+	local i = anim.sharpInOutTransition:new(.1, .5)
+	check(i:range(0, 100)):is(0)
+	check(i:finished()):is(false)
+
+	i:increment(.05)
+	local before = i:range(0, 100)
+	check(before > 0):is(true)
+	check(before < 100):is(true)
+
+	i:increment(.05)
+	check(i:range(0, 100)):is(100)
+	check(i:finished()):is(false)
+
+	i:increment(.15)
+	local after = i:range(0, 100)
+	check(after > 0):is(true)
+	check(after < 100):is(true)
+	check(i:finished()):is(false)
+
+	i:increment(.35)
+	check(i:range(0, 100)):is(0)
+
+	i:increment(1)
+	check(i:range(0, 100)):is(0)
+	check(i:finished()):is(true)
+end)
