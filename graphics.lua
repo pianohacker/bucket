@@ -29,6 +29,17 @@ local function unpackEach(...)
 	return unpackEachv({...})
 end
 
+local function drawLayers(...)
+	love.graphics.setColor(1, 1, 1, 1)
+	love.graphics.setBlendMode('alpha', 'premultiplied')
+
+	for _, layer in ipairs({...}) do
+		love.graphics.draw(layer)
+	end
+
+	love.graphics.setBlendMode('alpha')
+end
+
 local Renderer = std.object:clone()
 
 function Renderer:fontDescriptions()
@@ -446,18 +457,12 @@ BoardRenderer.renderPieceGraphics = memoizedCanvasRenderer(
 )
 
 function BoardRenderer:draw()
-	local backgroundCanvas = self:renderBackgroundGraphics()
-	local gridAnimationCanvas = self:renderGridAnimationsGraphics()
-	local pieceCanvas = self:renderPieceGraphics()
-	local gridCanvas = self:renderGridGraphics()
-
-	love.graphics.setColor(1, 1, 1, 1)
-	love.graphics.setBlendMode('alpha', 'premultiplied')
-	love.graphics.draw(backgroundCanvas)
-	love.graphics.draw(gridAnimationCanvas)
-	love.graphics.draw(pieceCanvas)
-	love.graphics.draw(gridCanvas)
-	love.graphics.setBlendMode('alpha')
+	drawLayers(
+		self:renderBackgroundGraphics(),
+		self:renderGridAnimationsGraphics(),
+		self:renderPieceGraphics(),
+		self:renderGridGraphics()
+	)
 end
 
 PieceHintRenderer = Renderer:clone()
@@ -614,7 +619,7 @@ function StartRenderer:draw()
 	)
 
 	love.graphics.printf(
-		"Press Space to start",
+		ui.isMobile and 'Tap to start' or 'Press Space to start',
 		self:fonts().start,
 		s.cx - s:pct(50),
 		s.cy + s:pct(10),
@@ -635,6 +640,7 @@ end
 function LossRenderer:fontDescriptions()
 	return {
 		main = {"fonts/AlegreyaSansSC-Light.ttf", 10},
+		start = {"fonts/AlegreyaSansSC-Light.ttf", 5},
 	}
 end
 
@@ -643,7 +649,7 @@ function LossRenderer:draw()
 
 	self.gameScreen:draw()
 
-	love.graphics.setColor(0, 0, 0, self.getOpacity())
+	love.graphics.setColor(0.1, 0, 0, self.getOpacity())
 	love.graphics.rectangle(
 		'fill',
 		0,
@@ -657,7 +663,16 @@ function LossRenderer:draw()
 		"Game  Over",
 		self:fonts().main,
 		s.cx - s:pct(50),
-		s.cy - s:pct(5),
+		s.cy - s:pct(15),
+		s.smallest,
+		"center"
+	)
+
+	love.graphics.printf(
+		ui.isMobile and 'Tap to restart' or 'Press Space to restart',
+		self:fonts().start,
+		s.cx - s:pct(50),
+		s.cy + s:pct(5),
 		s.smallest,
 		"center"
 	)
