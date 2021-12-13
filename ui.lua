@@ -108,8 +108,82 @@ function button:within(x, y)
 	return true
 end
 
-function button:pressed()
-	self.handler()
+function button:pressed(_, x, y)
+	if self:within(x, y) then
+		self.handler()
+	end
+end
+
+function button:moved(_, _)
+end
+
+function button:released(_, _)
+end
+
+local sliderButton = button:clone()
+ui.sliderButton = sliderButton
+
+function sliderButton:new(x, y, width, height, steps, upHandler, downHandler)
+	return self:extend({
+		x = x,
+		y = y,
+		width = width,
+		height = height,
+		stepLength = height / steps,
+		upHandler = upHandler,
+		downHandler = downHandler,
+	})
+end
+
+function sliderButton:pressed(id, x, y)
+	if self.pressedId ~= nil then
+		return
+	end
+
+	if self:within(x, y) then
+		self.pressedId = id
+		self.pressedAt = {x, y}
+		self.lastAt = {x, y}
+	else
+		self.pressedAt = nil
+	end
+end
+
+function sliderButton:stepsBetween(oldY, newY)
+	local absSteps = math.floor(math.abs(oldY - newY) / self.stepLength)
+
+	if newY < oldY then
+		return -absSteps
+	else
+		return absSteps
+	end
+end
+
+function sliderButton:moved(id, x, y)
+	if self.pressedId == nil or id ~= self.pressedId then
+		return
+	end
+
+	local _, pressedY = unpack(self.pressedAt)
+	local _, lastY = unpack(self.lastAt)
+	self.lastAt = {x, y}
+
+	local lastSteps = self:stepsBetween(pressedY, lastY)
+	local newSteps = self:stepsBetween(pressedY, y)
+
+	for _ = lastSteps,newSteps+1,-1 do
+		self.upHandler()
+	end
+
+	for _ = lastSteps,newSteps-1 do
+		self.downHandler()
+	end
+end
+
+function sliderButton:released(id, _, _)
+	if id == self.pressedId then
+		self.pressedId = nil
+	end
 end
 
 module("ui")

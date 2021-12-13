@@ -77,6 +77,32 @@ function love.keypressed(key)
 	ui.screen:keypressed(key)
 end
 
-function love.mousepressed(x, y)
-	ui.screen:mousepressed(x, y)
+function love.mousepressed(x, y, button, isTouch)
+	if button ~= 1 or isTouch then return end
+
+	ui.screen:pressed(1, x, y)
+end
+
+function love.mousemoved(x, y, _, _, isTouch)
+	if isTouch then return end
+
+	ui.screen:moved(1, x, y)
+end
+
+function love.mousereleased(x, y, button, isTouch)
+	if button ~= 1 or isTouch then return end
+
+	ui.screen:released(1, x, y)
+end
+
+function love.touchpressed(id, x, y)
+	ui.screen:pressed(id, x, y)
+end
+
+function love.touchmoved(id, x, y)
+	ui.screen:moved(id, x, y)
+end
+
+function love.touchreleased(id, x, y)
+	ui.screen:released(id, x, y)
 end

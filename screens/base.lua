@@ -32,12 +32,21 @@ function baseScreen:update(dt)
 	end
 end
 
-function baseScreen:mousepressed(x, y)
+function baseScreen:pressed(id, x, y)
 	for _, button in pairs(self:layout().buttons or {}) do
-		if button:within(x, y) then
-			button:pressed()
-			break
-		end
+		button:pressed(id, x, y)
+	end
+end
+
+function baseScreen:moved(id, x, y)
+	for _, button in pairs(self:layout().buttons or {}) do
+		button:moved(id, x, y)
+	end
+end
+
+function baseScreen:released(id, x, y)
+	for _, button in pairs(self:layout().buttons or {}) do
+		button:released(id, x, y)
 	end
 end
 
@@ -59,6 +68,20 @@ function baseScreen:newInputButton(x, y, width, height, input, label)
 	):extend({
 		label = label,
 	})
+end
+
+function baseScreen:newInputSliderButton(x, y, width, height, steps, upInput, downInput)
+	x, y, width, height = ui.shape:relPctCoords(x, y, width, height)
+
+	return ui.sliderButton:new(
+		x,
+		y,
+		width,
+		height,
+		steps,
+		function() self:input(upInput) end,
+		function() self:input(downInput) end
+	)
 end
 
 return baseScreen

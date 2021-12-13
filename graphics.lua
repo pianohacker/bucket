@@ -712,7 +712,7 @@ function ButtonsRenderer:draw()
 				button.label,
 				self:fonts().main,
 				button.x,
-				button.y,
+				button.y + button.height / 2 - s:pct(5),
 				button.width,
 				"center"
 			)
