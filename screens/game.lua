@@ -20,12 +20,12 @@ local CLEAR_SCORES = {
 	100,
 	150,
 }
-local LEVEL_ADVANCE_LINES = 2
+local LEVEL_ADVANCE_LINES = 5
 
 local function dropIntervalForLevel(level)
 	level = math.min(level, 10)
 
-	return .2 + .3 * ((10 - level) / 9) ^ 2
+	return .2 + .8 * ((10 - level) / 9) ^ 2
 end
 
 local gameScreen = baseScreen:clone()
