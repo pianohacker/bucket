@@ -64,7 +64,10 @@ function baseScreen:newInputButton(x, y, width, height, input, label)
 		y,
 		width,
 		height,
-		function() self:input(input) end
+		function()
+			love.system.vibrate(.025)
+			self:input(input)
+		end
 	):extend({
 		label = label,
 	})
@@ -79,8 +82,14 @@ function baseScreen:newInputSliderButton(x, y, width, height, steps, upInput, do
 		width,
 		height,
 		steps,
-		function() self:input(upInput) end,
-		function() self:input(downInput) end
+		function()
+			love.system.vibrate(.005)
+			self:input(upInput)
+		end,
+		function()
+			love.system.vibrate(.005)
+			self:input(downInput)
+		end
 	)
 end
 
