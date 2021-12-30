@@ -23,11 +23,32 @@ function lossScreen:new(gameScreen)
 				function() return o.timers.fadeIn:range(0, 1) end
 			),
 		}
+
+		o.keyInputMap = {
+			space = 'RESTART',
+		}
 	end)
 end
 
-function lossScreen:keypressed(key)
-	if key == 'space' or key == 'enter' then
+lossScreen.layout = std.memoized(
+	function() return ui.shape end,
+	function(self, s)
+		return {
+			buttons = {
+				ui.button:new(
+					0,
+					0,
+					s.fullWidth,
+					s.fullHeight,
+					function() self:input('RESTART') end
+				),
+			},
+		}
+	end
+)
+
+function lossScreen:input(input)
+	if input == 'RESTART' then
 		local gameScreen = require "screens/game"
 		ui:switchScreen(gameScreen:new())
 	end
