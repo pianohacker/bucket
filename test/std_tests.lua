@@ -76,6 +76,20 @@ notion("object falls back to normal access if custom access returns nothing", fu
 	check(o1.b):is(2)
 end)
 
+notion("object falls back to normal access if custom access returns nothing", function()
+	local o1 = std.object:clone()
+	local o2 = o1:clone()
+	local o3 = o2:clone()
+	local o4 = std.object:clone()
+	local o5 = o4:clone()
+
+	check(o1:inherits(o1)):is(true)
+	check(o2:inherits(o1)):is(true)
+	check(o3:inherits(o1)):is(true)
+	check(o4:inherits(o1)):is(false)
+	check(o5:inherits(o1)):is(false)
+end)
+
 notion("memoized calls a function once while its key stays the same", function()
 	local key = 0
 	local timesCalled = 0
@@ -255,6 +269,12 @@ notion("list:insertAll adds elements to a list in place", function()
 	real = std.list:fromTable({1, 2})
 	real:insertAll(std.list:fromTable({3, 4, 5}))
 	lu.assertEquals(real, std.list:fromTable({1, 2, 3, 4, 5}))
+end)
+
+notion("list:removeAll removes all elements from table", function()
+	local real = std.list:fromTable({1, 2, 3})
+	real:removeAll()
+	lu.assertEquals(real, std.list:fromTable({}))
 end)
 
 notion("grid starts out cleared", function()

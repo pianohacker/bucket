@@ -32,6 +32,18 @@ function baseScreen:update(dt)
 	end
 end
 
+function baseScreen:pauseAll()
+	for _, timer in pairs(self.timers or {}) do
+		timer:pause()
+	end
+end
+
+function baseScreen:startAll()
+	for _, timer in pairs(self.timers or {}) do
+		timer:start()
+	end
+end
+
 function baseScreen:pressed(id, x, y)
 	for _, button in pairs(self:layout().buttons or {}) do
 		button:pressed(id, x, y)

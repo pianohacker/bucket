@@ -119,6 +119,21 @@ function object:extend(o)
 	return o
 end
 
+--- Returns true if this object is the same as o, or inherits from o.
+function object:inherits(o)
+	local obj = self
+
+	while obj ~= nil do
+		if obj == o then
+			return true
+		end
+
+		obj = (getmetatable(obj) or {})._parent
+	end
+
+	return false
+end
+
 local function memoizedBase(keyFunc, func, getKeysAndVals, setKeysAndVals)
 	return function(...)
 		local key = {keyFunc(...)}
@@ -253,6 +268,13 @@ end
 function list:insertAll(t)
 	for _, x in ipairs(t) do
 		self:insert(x)
+	end
+end
+
+--- Removes all elements.
+function list:removeAll()
+	for i = 1,#self do
+		self[i] = nil
 	end
 end
 

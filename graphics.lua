@@ -630,9 +630,8 @@ end
 
 LossRenderer = Renderer:clone()
 
-function LossRenderer:new(gameScreen, getOpacity)
+function LossRenderer:new(getOpacity)
 	return self:extend({
-		gameScreen = gameScreen,
 		getOpacity = getOpacity,
 	})
 end
@@ -647,9 +646,7 @@ end
 function LossRenderer:draw()
 	local s = ui.shape
 
-	self.gameScreen:draw()
-
-	love.graphics.setColor(0.1, 0, 0, self.getOpacity())
+	love.graphics.setColor(0.1, 0, 0, self.getOpacity() * .9)
 	love.graphics.rectangle(
 		'fill',
 		0,
@@ -670,6 +667,53 @@ function LossRenderer:draw()
 
 	love.graphics.printf(
 		ui.isMobile and 'Tap to restart' or 'Press Space to restart',
+		self:fonts().start,
+		s.cx - s:pct(50),
+		s.cy + s:pct(5),
+		s.smallest,
+		"center"
+	)
+end
+
+PauseRenderer = Renderer:clone()
+
+function PauseRenderer:new(getOpacity)
+	return self:extend({
+		getOpacity = getOpacity,
+	})
+end
+
+function PauseRenderer:fontDescriptions()
+	return {
+		main = {"fonts/AlegreyaSansSC-Light.ttf", 10},
+		start = {"fonts/AlegreyaSansSC-Light.ttf", 5},
+	}
+end
+
+function PauseRenderer:draw()
+	local s = ui.shape
+
+	love.graphics.setColor(0.15, 0.15, 0, self.getOpacity() * 0.7)
+	love.graphics.rectangle(
+		'fill',
+		0,
+		0,
+		s.fullWidth,
+		s.fullHeight
+	)
+
+	love.graphics.setColor(1, 1, 1, self.getOpacity())
+	love.graphics.printf(
+		"Paused",
+		self:fonts().main,
+		s.cx - s:pct(50),
+		s.cy - s:pct(15),
+		s.smallest,
+		"center"
+	)
+
+	love.graphics.printf(
+		ui.isMobile and 'Tap to continue' or 'Press Space to continue',
 		self:fonts().start,
 		s.cx - s:pct(50),
 		s.cy + s:pct(5),

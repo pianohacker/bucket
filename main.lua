@@ -38,14 +38,12 @@ function love.load(args)
 		startScreen = require "screens/start"
 	end
 
-	ui.screen = startScreen:new()
+	ui:switchScreen(startScreen:new())
 end
 
 function love.resize()
 	local width, height = love.graphics.getDimensions()
-	ui:updateShape(width, height)
-
-	ui.screen:resize()
+	ui:resize(width, height)
 end
 
 function love.draw()
@@ -54,11 +52,11 @@ function love.draw()
 		love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10)
 	end
 
-	ui.screen:draw()
+	ui:draw()
 end
 
 function love.update(dt)
-	ui.screen:update(dt)
+	ui:update(dt)
 
 	if profilerState.enabled then
 		profilerState.frame = profilerState.frame + 1
@@ -74,35 +72,35 @@ function love.update(dt)
 end
 
 function love.keypressed(key)
-	ui.screen:keypressed(key)
+	ui:keypressed(key)
 end
 
 function love.mousepressed(x, y, button, isTouch)
 	if button ~= 1 or isTouch then return end
 
-	ui.screen:pressed(1, x, y)
+	ui:pressed(1, x, y)
 end
 
 function love.mousemoved(x, y, _, _, isTouch)
 	if isTouch then return end
 
-	ui.screen:moved(1, x, y)
+	ui:moved(1, x, y)
 end
 
 function love.mousereleased(x, y, button, isTouch)
 	if button ~= 1 or isTouch then return end
 
-	ui.screen:released(1, x, y)
+	ui:released(1, x, y)
 end
 
 function love.touchpressed(id, x, y)
-	ui.screen:pressed(id, x, y)
+	ui:pressed(id, x, y)
 end
 
 function love.touchmoved(id, x, y)
-	ui.screen:moved(id, x, y)
+	ui:moved(id, x, y)
 end
 
 function love.touchreleased(id, x, y)
-	ui.screen:released(id, x, y)
+	ui:released(id, x, y)
 end

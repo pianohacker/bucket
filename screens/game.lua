@@ -11,6 +11,7 @@ local piece = require "piece"
 
 local baseScreen = require "screens/base"
 local lossScreen = require "screens/loss"
+local pauseScreen = require "screens/pause"
 
 local CLEAR_SCORES = {
 	10,
@@ -84,6 +85,7 @@ function gameScreen:new()
 			e = 'DROP',
 			r = 'ROTATE_LEFT',
 			s = 'ROTATE_RIGHT',
+			escape = 'PAUSE',
 		}
 	end)
 end
@@ -155,7 +157,7 @@ function gameScreen:dropPiece()
 		end
 
 		if allBlocked then
-			ui:switchScreen(lossScreen:new(self))
+			ui:addScreen(lossScreen:new())
 			return
 		end
 
@@ -183,6 +185,8 @@ function gameScreen:input(input)
 		self.board:rotatePiece(-1)
 	elseif input == 'ROTATE_RIGHT' then
 		self.board:rotatePiece(1)
+	elseif input == 'PAUSE' then
+		ui:addScreen(pauseScreen:new())
 	end
 end
 

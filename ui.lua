@@ -44,10 +44,35 @@ end
 
 ui = {
 	isMobile = (not not os.getenv("BUCKET_FORCE_MOBILE")) or love.system.getOS() == 'Android' or love.system.getOS() == 'iOS',
+	screenStack = std.list:clone(),
 }
 
+function ui:clearStack(newScreen)
+	ui.screenStack:removeAll()
+end
+
+function ui:addScreen(newScreen)
+	ui.screenStack:insert(newScreen)
+end
+
+function ui:removeScreen(screenParent)
+	for i, screen in ipairs(ui.screenStack) do
+		if screen:inherits(screenParent) then
+			ui.screenStack:remove(i)
+			return
+		end
+	end
+
+	print("WARNING: failed to find matching screen to remove")
+end
+
+function ui:stackTop()
+	return ui.screenStack[#ui.screenStack]
+end
+
 function ui:switchScreen(newScreen)
-	ui.screen = newScreen
+	ui:clearStack()
+	ui:addScreen(newScreen)
 end
 
 function ui:updateShape(fullWidth, fullHeight)
@@ -82,6 +107,40 @@ function ui:updateShape(fullWidth, fullHeight)
 		height = height,
 		orientation = orientation,
 	})
+end
+
+function ui:resize(width, height)
+	ui:updateShape(width, height)
+
+	for screen in ui.screenStack:values() do
+		screen:resize()
+	end
+end
+
+function ui:draw()
+	for screen in ui.screenStack:values() do
+		screen:draw()
+	end
+end
+
+function ui:update(dt)
+	ui:stackTop():update(dt)
+end
+
+function ui:keypressed(key)
+	ui:stackTop():keypressed(key)
+end
+
+function ui:pressed(id, x, y)
+	ui:stackTop():pressed(id, x, y)
+end
+
+function ui:moved(id, x, y)
+	ui:stackTop():moved(id, x, y)
+end
+
+function ui:released(id, x, y)
+	ui:stackTop():released(id, x, y)
 end
 
 --- A clickable/touchable button.
