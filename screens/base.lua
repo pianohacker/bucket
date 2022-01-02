@@ -85,7 +85,7 @@ function baseScreen:newInputButton(x, y, width, height, input, label)
 	})
 end
 
-function baseScreen:newInputSliderButton(x, y, width, height, steps, upInput, downInput)
+function baseScreen:newInputSliderButton(x, y, width, height, steps, upInput, downInput, label)
 	x, y, width, height = ui.shape:relPctCoords(x, y, width, height)
 
 	return ui.sliderButton:new(
@@ -102,7 +102,9 @@ function baseScreen:newInputSliderButton(x, y, width, height, steps, upInput, do
 			love.system.vibrate(.005)
 			self:input(downInput)
 		end
-	)
+	):extend({
+		label = label,
+	})
 end
 
 return baseScreen

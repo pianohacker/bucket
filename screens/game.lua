@@ -99,10 +99,10 @@ gameScreen.layout = std.memoized(
 
 		return {
 			buttons = {
-				self:newInputButton(5, -5, 25, 18, 'DROP', '↓' ),
-				self:newInputButton(5, -27, 10, 18, 'ROTATE_LEFT', '↙'),
-				self:newInputButton(20, -27, 10, 18, 'ROTATE_RIGHT', '↘'),
-				self:newInputSliderButton(-5, -5, 25, 40, 8, 'MOVE_RIGHT', 'MOVE_LEFT'),
+				self:newInputButton(5, -5, 25, 18, 'DROP', '' ),
+				self:newInputButton(5, -27, 10, 18, 'ROTATE_LEFT', ''),
+				self:newInputButton(20, -27, 10, 18, 'ROTATE_RIGHT', ''),
+				self:newInputSliderButton(-5, -5, 25, 40, 8, 'MOVE_RIGHT', 'MOVE_LEFT', ''),
 			},
 		}
 	end

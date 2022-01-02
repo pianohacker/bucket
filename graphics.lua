@@ -732,7 +732,7 @@ end
 
 function ButtonsRenderer:fontDescriptions()
 	return {
-		main = {"fonts/AlegreyaSansSC-Medium.ttf", 10},
+		main = {"fonts/bootstrap-icons.ttf", 8},
 	}
 end
 
@@ -756,7 +756,7 @@ function ButtonsRenderer:draw()
 				button.label,
 				self:fonts().main,
 				button.x,
-				button.y + button.height / 2 - s:pct(5),
+				button.y + button.height / 2 - s:pct(3),
 				button.width,
 				"center"
 			)
