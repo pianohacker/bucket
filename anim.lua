@@ -25,13 +25,13 @@ interval = std.object:extend({
 	end,
 
 	increment = function(self, dt)
-		if self.stopped then return false end
+		if self.paused then return false end
 
 		self.elapsed = self.elapsed + dt
 	end,
 
 	firing = function(self)
-		if self.paused or self.stopped then return false end
+		if self.paused then return false end
 
 		if self.elapsed >= self.length then
 			self.elapsed = 0
@@ -46,11 +46,11 @@ interval = std.object:extend({
 	end,
 
 	stop = function(self)
-		self.stopped = true
+		self:pause()
+		self:reset()
 	end,
 
 	start = function(self)
-		self.stopped = false
 		self.paused = false
 	end,
 

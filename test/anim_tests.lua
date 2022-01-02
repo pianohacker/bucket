@@ -24,8 +24,8 @@ end)
 notion("interval can be paused", function()
 	-- Incrementing after pause
 	local i = anim.interval:new(.8)
-	i:pause()
 	i:increment(.9)
+	i:pause()
 	check(i:firing()):is(false)
 
 	i:start()
