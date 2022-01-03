@@ -68,6 +68,9 @@ function baseScreen:keypressed(key, _, _)
 	end
 end
 
+function baseScreen:unfocused()
+end
+
 function baseScreen:newInputButton(x, y, width, height, input, label)
 	x, y, width, height = ui.shape:relPctCoords(x, y, width, height)
 

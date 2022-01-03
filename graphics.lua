@@ -500,9 +500,10 @@ end
 
 function PieceHintRenderer:draw()
 	local s = ui.shape
+	local xOffset = ui.isMobile and s:pct(10) or 0
 
 	local width = s:pct(20)
-	local hintX = s.fullWidth - s:pct(5) - width
+	local hintX = s.fullWidth - s:pct(5) - width - xOffset
 
 	love.graphics.printf(
 		"Next",
@@ -517,7 +518,7 @@ function PieceHintRenderer:draw()
 	local pieceY = s:pct(10)
 	local gridSize = width / 4
 
-	drawPiece(p, hintX, pieceY,  gridSize)
+	drawPiece(p, hintX, pieceY, gridSize)
 end
 
 ScoreRenderer = Renderer:clone()

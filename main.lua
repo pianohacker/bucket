@@ -104,3 +104,9 @@ end
 function love.touchreleased(id, x, y)
 	ui:released(id, x, y)
 end
+
+function love.focus(focused)
+	if not focused then
+		ui:unfocused()
+	end
+end

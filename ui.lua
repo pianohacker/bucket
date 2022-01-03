@@ -4,7 +4,7 @@
 -- License, v. 2.0. If a copy of the MPL was not distributed with this
 -- file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-local MIN_ASPECT = 1.6
+local MIN_ASPECT = 16/9
 
 local std = require("std")
 
@@ -141,6 +141,10 @@ end
 
 function ui:released(id, x, y)
 	ui:stackTop():released(id, x, y)
+end
+
+function ui:unfocused()
+	ui:stackTop():unfocused()
 end
 
 --- A clickable/touchable button.

@@ -1,0 +1,15 @@
+*.ignore
+
+test/
+luaunit/
+*.rockspec
+*_test.lua
+**/spec/*
+
+fonts/*
+!fonts/AlegreyaSansSC-Light.ttf*
+!fonts/AlegreyaSansSC-Medium.ttf*
+!fonts/bootstrap-icons.ttf*
+
+*.md
+!*-LICENSE.md
